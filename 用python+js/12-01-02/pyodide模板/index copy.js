@@ -15,12 +15,31 @@ createApp({
         print("Hello, world!")
         
         `
+        const myname=ref("")
 
       
 
        const Main = async () => { //主函数入口
 
-             await runpy(pycode)
+             
+
+            const pycdoes=await getGitHubFileContent("pythoncode/testpy1201/testpy.py")
+
+            await runpy(pycdoes)
+
+             const pycdoes2=await getGitHubFileContent("pythoncode/testpy1201/testpy2.py")
+
+            await runpy(pycdoes2)
+
+
+            //取出py文件里的变量
+            const pythonGlobals = window.pyodide.globals;
+            const names_js = pythonGlobals.get('name').toString();
+            const mynames=pythonGlobals.get('myname1').toString();
+            console.log(`output->names_js`,names_js)
+            console.log(`output->myname`,mynames)
+
+            myname.value=mynames
 
         
         };
@@ -28,6 +47,44 @@ createApp({
 
 //********************************************************设置pyodide环境********** */
 //#region 导入pyodide ,配置pyodede 程序在Main方法里
+
+    async function getGitHubFileContent(filePath) {//取出github文件内容
+            const username = 'weifeng1632006';
+            const repo = 'BaoBiaoXiuXiu1127';
+            const branch = 'main';
+            // const filePath = 'pythoncode/testpy1201/testpy.py';
+
+            const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${filePath}?ref=${branch}`;
+
+            try {
+                const response = await fetch(apiUrl);
+
+                if (!response.ok) {
+                    throw new Error(`API请求失败: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // GitHub API返回的内容是Base64编码的
+                // const fileContent1 = atob(data.content);
+
+                // const fileContent1 = data.content
+
+                //  const fileContent = atob(fileContent1);
+
+                 // 方法2：使用TextDecoder处理编码
+                const fileContent = new TextDecoder('utf-8').decode(
+                    Uint8Array.from(atob(data.content), c => c.charCodeAt(0))
+                );
+
+                // console.log('获取的文件内容:', fileContent);
+                return fileContent;
+
+            } catch (error) {
+                console.error('获取文件失败:', error);
+                throw error;
+            }
+        }
       const runpy = async (python_code) => {
 
             await window.pyodide.runPythonAsync(
@@ -118,7 +175,7 @@ createApp({
 
 
 
-        return { message, };
+        return { message, myname};
     }
 
 

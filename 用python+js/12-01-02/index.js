@@ -15,28 +15,26 @@ createApp({
         print("Hello, world!")
         
         `
+        const myname=ref("")
 
       
 
        const Main = async () => { //主函数入口
 
-             
-
             const pycdoes=await getGitHubFileContent("pythoncode/testpy1201/testpy.py")
-
             await runpy(pycdoes)
-
              const pycdoes2=await getGitHubFileContent("pythoncode/testpy1201/testpy2.py")
-
             await runpy(pycdoes2)
 
 
             //取出py文件里的变量
             const pythonGlobals = window.pyodide.globals;
-            const names_js = pythonGlobals.get('name');
-            const myname=pythonGlobals.get('myname1');
+            const names_js = pythonGlobals.get('name').toString();
+            const mynames=pythonGlobals.get('myname1').toString();
             console.log(`output->names_js`,names_js)
-            console.log(`output->myname`,myname)
+            console.log(`output->myname`,mynames)
+
+            myname.value=mynames
 
         
         };
@@ -63,7 +61,16 @@ createApp({
                 const data = await response.json();
 
                 // GitHub API返回的内容是Base64编码的
-                const fileContent = atob(data.content);
+                // const fileContent1 = atob(data.content);
+
+                // const fileContent1 = data.content
+
+                //  const fileContent = atob(fileContent1);
+
+                 // 方法2：使用TextDecoder处理编码
+                const fileContent = new TextDecoder('utf-8').decode(
+                    Uint8Array.from(atob(data.content), c => c.charCodeAt(0))
+                );
 
                 // console.log('获取的文件内容:', fileContent);
                 return fileContent;
@@ -163,7 +170,7 @@ createApp({
 
 
 
-        return { message, };
+        return { message, myname};
     }
 
 
