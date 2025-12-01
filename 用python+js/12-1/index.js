@@ -98,6 +98,8 @@ createApp({
             await runpy(py_TongZhougBao)
         };
 
+        const myname=ref("")
+
         const Main = async () => { //主函数入口
 
             // await runpy(python_main)//这里就相当于用python把变量传递给了js的变量中
@@ -106,8 +108,19 @@ createApp({
             // datatest_f.value=window.datatest
             // console.log(`datatest->`,window.datatest)
 
-            await runpy(await (await fetch("https://raw.githubusercontent.com/weifeng1632006/BaoBiaoXiuXiu1127/refs/heads/main/%E7%94%A8python%2Bjs/12-1/python_code/testpy.py?token=GHSAT0AAAAAADQLM7QT2THNJSOURZ3JYBGQ2JNIGGA")).text())
+            await runpy(await (await fetch("https://raw.githubusercontent.com/weifeng1632006/BaoBiaoXiuXiu1127/refs/heads/main/%E7%94%A8python%2Bjs/12-1/python_code/testpy.py?token=GHSAT0AAAAAADQLM7QSPEAEMHKWXCFQARKW2JNJGMA")).text())
             console.log(`Main run over ===================->  `,)
+
+           
+            const pythonGlobals = window.pyodide.globals;
+
+             const names_js = pythonGlobals.get('name');
+
+             console.log(`output->names_js`,names_js)
+
+             myname.value=names_js
+
+
 
         };
 
@@ -118,7 +131,6 @@ createApp({
         window.pyodide = null;
         const initPyodide = async () => {
             //作用，初化 pyodide 环境 导入numpy pandas 
-
             const output = ref('');
             const error = ref('');
             const loading = ref(true);
@@ -245,7 +257,7 @@ createApp({
 
 
 
-        return { message,datatest_f};
+        return { message,datatest_f,myname};
     }
 
     

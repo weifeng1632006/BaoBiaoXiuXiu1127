@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pyodide外部Python文件变量传递</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .code-block { background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        .result { margin-top: 20px; padding: 15px; background: #e8f5e8; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pyodide外部Python文件变量传递</h1>
+        
+        <div class="code-block">
+            <h3>外部Python文件内容示例 (code.py):</h3>
+            <pre>
+# 定义一些变量
+message = "Hello from Python!"
+number = 42
+data_list = [1, 2, 3, 4, 5]
+calculation_result = number * 2</pre>
+        </div>
+
+        <button onclick="runPythonFile()">运行外部Python文件</button>
+        <button onclick="getPythonVariables()">获取Python变量</button>
+        
+        <div id="result" class="result" style="display:none;">
+            <h3>获取到的Python变量:</h3>
+            <pre id="variablesOutput"></pre>
+        </div>
+    </div>
+
+    <script>
+        let pyodide;
+
+        // 初始化Pyodide
+        async function initializePyodide() {
+            if (!pyodide) {
+                pyodide = await loadPyodide();
+                console.log("Pyodide初始化完成");
+            }
+            return pyodide;
+        }
+
+        // 运行外部Python文件
+        async function runPythonFile() {
+            try {
+                await initializePyodide();
+                
+                // 运行外部Python文件
+                await pyodide.runPython(await (await fetch("https://some_url/.../code.py")).text());
+                
+                document.getElementById("result").style.display = "block";
+                document.getElementById("variablesOutput").textContent = 
+                    "Python文件执行成功！现在可以获取变量。";
+                    
+            } catch (error) {
+                console.error("执行Python文件时出错:", error);
+                document.getElementById("result").style.display = "block";
+                document.getElementById("variablesOutput").textContent = 
+                    "错误: " + error.message;
+            }
+        }
+
+        // 获取Python变量并传递给JavaScript
+        async function getPythonVariables() {
+            if (!pyodide) {
+                alert("请先运行Python文件");
+                return;
+            }
+
+            try {
+                // 方法1: 使用pyodide.globals获取变量
+                const pythonGlobals = pyodide.globals;
+                
+                // 检查变量是否存在
+                if (pythonGlobals.has('message') && pythonGlobals.has('number')) {
+                    // 获取Python变量值
+                    const message = pythonGlobals.get('message');
+                    const number = pythonGlobals.get('number');
+                    const dataList = pythonGlobals.get('data_list');
+                    const calcResult = pythonGlobals.get('calculation_result');
+                    
+                    // 转换为JavaScript对象
+                    const jsMessage = message.toJs();
+                    const jsNumber = number.toJs();
+                    const jsDataList = dataList.toJs();
+                    const jsCalcResult = calcResult.toJs();
+                    
+                    // 显示结果
+                    const output = `
+从Python获取的变量:
+message: ${jsMessage}
+number: ${jsNumber}
+data_list: [${jsDataList}]
+calculation_result: ${jsCalcResult}
+
+现在这些变量可以在JavaScript中直接使用:
+jsMessage = "${jsMessage}"
+jsNumber = ${jsNumber}
+jsDataList = [${jsDataList}]
+jsCalcResult = ${jsCalcResult}
+                    `;
+                    
+                    document.getElementById("variablesOutput").textContent = output;
+                    
+                    // 方法2: 使用runPython返回特定变量
+                    const specificVariable = await pyodide.runPython(`
+                        import json
+                        result = {
+                            "message": message,
+                            "number": number,
+                            "data_list": data_list,
+                            "calculation_result": calculation_result
+                        }
+                        json.dumps(result)
+                    `);
+                    
+                    console.log("通过JSON获取的变量:", JSON.parse(specificVariable));
+                    
+                } else {
+                    document.getElementById("variablesOutput").textContent = 
+                        "未找到预期的Python变量，请确保Python文件已正确执行。";
+                }
+                
+            } catch (error) {
+                console.error("获取Python变量时出错:", error);
+                document.getElementById("variablesOutput").textContent = 
+                    "错误: " + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

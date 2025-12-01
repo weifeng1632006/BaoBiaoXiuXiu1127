@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+
+
+
+
+    <script>
+
+        //https://api.github.com/repos/:owner/:repo/contents/:path?ref=:ref
+        //用python+js/12-1/python_code/testpy.py
+
+        const apiUrl = `https://api.github.com/repos/weifeng1632006/BaoBiaoXiuXiu1127/contents/用python+js/12-1/python_code/testpy.py?ref=main`;
+// 发送HTTP请求
+fetch(apiUrl)
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.statusText);
+        }
+        return response.json();
+    })
+    .then(data => {
+        // 对Base64编码的内容进行解码
+        const fileContent = atob(data.content);
+        console.log(fileContent);
+        // 将Python代码传递给runpy函数
+        runpy(fileContent);
+    })
+    .catch(error => {
+        console.error('There has been a problem with your fetch operation:', error);
+    });
+
+
+
+
+    </script>
+    
+</body>
+</html>

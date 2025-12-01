@@ -3,3 +3,8 @@
     "reportId":"a5011450ae394a98befb4f1c33ca6203"
 
 }
+
+
+https://raw.githubusercontent.com/weifeng1632006/BaoBiaoXiuXiu1127/main/%E7%94%A8python%2Bjs/12-1/python_code/testpy.py
+
+https://raw.githubusercontent.com/weifeng1632006/BaoBiaoXiuXiu1127/main/用python+js/12-1/python_code/testpy.py
