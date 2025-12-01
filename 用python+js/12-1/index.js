@@ -37,7 +37,29 @@ async def get_web_df(post):
 `
 
 
+const py_TongZhougBao = `
 
+import json
+import js 
+import pandas as pd
+
+class TongZhougBao:
+  
+    def __init__(self):
+
+        print("TongZhougBao init")
+
+    async def get_df(self):
+        
+        df=await get_web_df(js.test_post)
+
+        print("tongzhougbao getdf===============")
+
+        #print(df)
+
+        return df
+       
+`
 
 // window.sdata = scope
 
@@ -46,11 +68,15 @@ async def get_web_df(post):
 const python_main = `
     import js
     from js import document, console, JSON
-   
-    df=await get_web_df(window.test_post)
+    tb=TongZhougBao()
+    df=await tb.get_df()
 
     df_json = df.to_json(orient='records', force_ascii=False)
     js.datatest=df_json
+
+
+
+
 `
 // #endregion python main 
 
@@ -64,41 +90,26 @@ createApp({
     setup() {
 
         const message="hello"
-
         const datatest_f=ref("")
-        
         // main---------所有程序的入口在这里
 
         const _init_ = async () => { //这里是初始化 方法
             await runpy(def_funcs)
-            
-
+            await runpy(py_TongZhougBao)
         };
-
-        const get_web_data=async (post,dataname) => {
-            
-            
-
-
-
-        }
-
-
-
-
 
         const Main = async () => { //主函数入口
 
-            await runpy(python_main)//这里就相当于用python把变量传递给了js的变量中
+            // await runpy(python_main)//这里就相当于用python把变量传递给了js的变量中
 
-            //后面可以直接使用js变量了
-            datatest_f.value=window.datatest
-            console.log(`datatest->`,window.datatest)
+            // //后面可以直接使用js变量了
+            // datatest_f.value=window.datatest
+            // console.log(`datatest->`,window.datatest)
+
+            await runpy(await (await fetch("https://raw.githubusercontent.com/weifeng1632006/BaoBiaoXiuXiu1127/refs/heads/main/%E7%94%A8python%2Bjs/12-1/python_code/testpy.py?token=GHSAT0AAAAAADQLM7QT2THNJSOURZ3JYBGQ2JNIGGA")).text())
             console.log(`Main run over ===================->  `,)
 
-
         };
-
 
         //************************************************************************************************ */
 
