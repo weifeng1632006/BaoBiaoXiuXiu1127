@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
+
 <body>
 
 
@@ -15,31 +17,44 @@
 
         //https://api.github.com/repos/:owner/:repo/contents/:path?ref=:ref
         //用python+js/12-1/python_code/testpy.py
+        //pythoncode/testpy1201/testpy.py
 
-        const apiUrl = `https://api.github.com/repos/weifeng1632006/BaoBiaoXiuXiu1127/contents/用python+js/12-1/python_code/testpy.py?ref=main`;
-// 发送HTTP请求
-fetch(apiUrl)
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok ' + response.statusText);
+        async function getGitHubFileContent(filePath) {
+            const username = 'weifeng1632006';
+            const repo = 'BaoBiaoXiuXiu1127';
+            const branch = 'main';
+            // const filePath = 'pythoncode/testpy1201/testpy.py';
+
+            const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${filePath}?ref=${branch}`;
+
+            try {
+                const response = await fetch(apiUrl);
+
+                if (!response.ok) {
+                    throw new Error(`API请求失败: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // GitHub API返回的内容是Base64编码的
+                const fileContent = atob(data.content);
+
+                console.log('获取的文件内容:', fileContent);
+                return fileContent;
+
+            } catch (error) {
+                console.error('获取文件失败:', error);
+                throw error;
+            }
         }
-        return response.json();
-    })
-    .then(data => {
-        // 对Base64编码的内容进行解码
-        const fileContent = atob(data.content);
-        console.log(fileContent);
-        // 将Python代码传递给runpy函数
-        runpy(fileContent);
-    })
-    .catch(error => {
-        console.error('There has been a problem with your fetch operation:', error);
-    });
+        // getGitHubFileContent();
+
 
 
 
 
     </script>
-    
+
 </body>
+
 </html>

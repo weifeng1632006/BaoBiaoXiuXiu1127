@@ -108,7 +108,9 @@ createApp({
             // datatest_f.value=window.datatest
             // console.log(`datatest->`,window.datatest)
 
-            await runpy(await (await fetch("https://raw.githubusercontent.com/weifeng1632006/BaoBiaoXiuXiu1127/refs/heads/main/%E7%94%A8python%2Bjs/12-1/python_code/testpy.py?token=GHSAT0AAAAAADQLM7QSPEAEMHKWXCFQARKW2JNJGMA")).text())
+            const pycode=getGitHubFileContent("pythoncode/testpy1201/testpy.py")
+
+            await runpy(pycode)
             console.log(`Main run over ===================->  `,)
 
            
@@ -164,6 +166,35 @@ createApp({
 
             loading.value = false;
         };
+
+        async function getGitHubFileContent(filePath) {
+            const username = 'weifeng1632006';
+            const repo = 'BaoBiaoXiuXiu1127';
+            const branch = 'main';
+            // const filePath = 'pythoncode/testpy1201/testpy.py';
+
+            const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${filePath}?ref=${branch}`;
+
+            try {
+                const response = await fetch(apiUrl);
+
+                if (!response.ok) {
+                    throw new Error(`API请求失败: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // GitHub API返回的内容是Base64编码的
+                const fileContent = atob(data.content);
+
+                console.log('获取的文件内容:', fileContent);
+                return fileContent;
+
+            } catch (error) {
+                console.error('获取文件失败:', error);
+                throw error;
+            }
+        }
 
 
         window.getdata = async (post, return_data = null) => {
