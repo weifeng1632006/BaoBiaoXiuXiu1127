@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vuetify Demo</title>
+    <!-- Vue CSS -->
+    <link href="https://unpkg.com/vue@next/dist/vue.min.css" rel="stylesheet">
+    <!-- Vuetify CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@3/dist/vuetify.min.css" rel="stylesheet">
+    <!-- Material Design Icons CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <!-- Roboto Font CSS -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <v-app>
+            <v-app-bar color="white" elevation="2">
+                <v-app-bar-title class="font-weight-bold">
+                    <v-icon color="primary" class="mr-2">mdi-checkbox-marked-circle</v-icon>
+                    Vuetify + Vue3 集成成功
+                </v-app-bar-title>
+            </v-app-bar>
+
+            <v-main>
+                <div class="container">
+                    <v-row>
+                        <v-col cols="12" md="6">
+                            <v-card class="stat-card">
+                                <v-card-title>
+                                    示例标题
+                                </v-card-title>
+                                <v-card-text>
+                                    示例内容
+                                </v-card-text>
+                            </v-card>
+                        </v-col>
+                    </v-row>
+                </div>
+            </v-main>
+        </v-app>
+    </div>
+
+    <!-- Vue -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Vuetify -->
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3"></script>
+    <script>
+        const { createApp } = Vue;
+        const { createVuetify } = Vuetify;
+
+        const vuetify = createVuetify({
+            // 这里可以自定义Vuetify的配置
+        });
+
+        createApp({
+            data() {
+                return {
+                    // 示例数据
+                };
+            },
+            methods: {
+                // 示例方法
+            }
+        }).use(vuetify).mount('#app');
+    </script>
+</body>
+</html>

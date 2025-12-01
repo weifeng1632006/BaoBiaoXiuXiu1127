@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JavaScript与Pyodide交互示例</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+</head>
+<body>
+    <h1>JavaScript与Pyodide交互演示</h1>
+    
+    <div>
+        <h2>JavaScript调用Python函数</h2>
+        <button onclick="callPythonFunction()">调用Python函数</button>
+        <p id="pythonResult"></p>
+    </div>
+    
+    <div>
+        <h2>Python调用JavaScript函数</h2>
+        <button onclick="callJsFromPython()">用Python调用JS函数</button>
+        <p id="jsResult"></p>
+    </div>
+    
+    <script>
+        // 全局Pyodide实例
+        let pyodide;
+        
+        // 初始化Pyodide
+        async function initPyodide() {
+            pyodide = await loadPyodide();
+            
+            // 定义Python函数
+            pyodide.runPython(`
+                # Python调用JS函数的示例
+                import js
+                
+                def show_alert(message):
+                    js.window.alert(message)
+                
+                def call_js_function():
+                    # 调用JavaScript函数
+                    result = js.document.getElementById("jsResult")
+                    result.innerHTML = "Python成功调用了JavaScript!"
+            `);
+            
+            console.log("Pyodide初始化完成");
+        }
+        
+        // 从JavaScript调用Python函数
+        function callPythonFunction() {
+            if (!pyodide) {
+                console.error("Pyodide未初始化");
+                return;
+            }
+            
+            // 调用Python函数并显示结果
+            const result = pyodide.globals.get("add_numbers")(5, 3);
+            document.getElementById("pythonResult").innerHTML = 
+                `5 + 3 = ${result}`;
+        }
+        
+        // 从Python调用JavaScript函数
+        function callJsFromPython() {
+            if (!pyodide) {
+                console.error("Pyodide未初始化");
+                return;
+            }
+            
+            // 调用Python中定义的调用JS的函数
+            pyodide.globals.get("call_js_function")();
+        }
+        
+        // 页面加载时初始化Pyodide
+        window.onload = async function() {
+            await initPyodide();
+            
+            // 在Python中注册JavaScript函数
+            pyodide.runPython(`
+                # 注册JavaScript函数供Python调用
+                js_alert = js.window.alert
+                js_show_message = js.document.getElementById('pythonResult').innerHTML.__set__
+                
+                # 添加数字的函数（供JS调用）
+                def add_numbers(a, b):
+                    return a + b
+            `);
+        };
+    </script>
+</body>
+</html>

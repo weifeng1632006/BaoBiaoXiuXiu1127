@@ -1,0 +1,308 @@
+<template>
+  <div class="element-plus-tree">
+ 
+    <el-tree
+      :data="treeData"
+      :props="defaultProps"
+      :show-checkbox="true"
+      :default-expand-all="true"
+      :highlight-current="true"
+      :expand-on-click-node="false"
+      :indent="22"
+    >
+      <template #default="{ node, data }">
+        <span v-if="!node.isLeaf" style="display: flex; align-items: center;">
+          <el-icon v-if="node.expanded" style="margin: 0 6px 0 0px;" size="16"><FolderOpened /></el-icon>
+          <el-icon v-else style="margin: 0 6px 0 0px;" size="16"><Folder /></el-icon>
+          <small @click="handleNodeClick(node, data)">{{ node.label }}</small>
+        </span>
+ 
+        <span v-else style="display: flex; align-items: center;">
+          <el-icon style="margin: 0 6px 0 0px;" size="16"><Document /></el-icon>
+          <small @click="handleNodeClick(node, data)">{{ node.label }}</small>
+        </span>
+      </template>
+    </el-tree>
+  </div>
+</template>
+ 
+<script setup>
+import { onMounted, ref, getCurrentInstance } from 'vue'
+ 
+// 代理对象
+const { proxy } = getCurrentInstance()
+ 
+// 树型数据
+const treeData = ref(
+  [
+    {
+      label: '香烟 WiFi 啤酒',
+      expanded: true,
+      children: [
+        {
+          label: '香烟',
+          children: [
+            {
+              label: '煊赫门'
+            },
+            {
+              label: 'ESSE双爆珠'
+            }
+          ],
+        },
+        {
+          label: '后端开发技术',
+          children: [
+            {
+              label: 'Java编程技术'
+            },
+            {
+              label: 'Python编程技术'
+            }
+          ],
+        },
+        {
+          label: '数据库',
+          children: [
+            {
+              label: '关系型数据库',
+              children: [
+                {
+                  label: 'MySQL'
+                },
+                {
+                  label: 'Oracle'
+                }
+              ],
+            },
+            {
+              label: '非关系型数据库',
+              children: [
+                {
+                  label: 'Redis'
+                },
+                {
+                  label: 'Elasticsearch'
+                }
+              ],
+            }
+          ],
+        },
+        {
+          label: 'AI人工智能'
+        },
+      ],
+    },
+    {
+      label: '火腿 iPad 泡面'
+    },
+  ]
+)
+ 
+// 树节点属性映射关系
+const defaultProps = {
+  children: 'children',
+  label: 'label',
+}
+ 
+/**
+ * 树组件点击事件句柄方法
+ */
+const handleNodeClick = (node, data) => {
+  console.log(
+    '%c 树组件点击事件句柄方法 %c handleNodeClick',
+    'padding: 1px; background-color: #35495e; color: #fff',
+    'padding: 1px; background-color: #5e7ce0; color: #fff',
+  )
+  console.log('%c ∟ %c node %c =>', 'text-indent: 10px', 'padding: 1px; background-color: #41b883; color: #fff', 'color: #000', node)
+  console.log('%c ∟ %c data %c =>', 'text-indent: 10px', 'padding: 1px; background-color: #41b883; color: #fff', 'color: #000', data)
+}
+ 
+onMounted(() => {
+  // ...
+})
+</script>
+ 
+<style lang="less" scoped>
+  .element-plus-tree {
+    padding: 100px;
+ 
+    :deep(.el-tree) {
+ 
+      /* ---- ---- ---- ---- ^（节点对齐）---- ---- ---- ---- */
+      .el-tree-node {
+        
+        /* ^ 所有节点 */
+        i.el-tree-node__expand-icon {
+          padding: 6px;
+ 
+          &::before {
+            font-family: element-ui-icons;
+            font-style: normal;
+            content: "\e6d9";
+            color: #000000;
+            border: 1px solid #606266;
+            border-radius: 2px;
+          }
+ 
+          svg {
+            display: none; // 隐藏所有节点的 svg 图标
+          }
+        }
+        /* / 所有节点 */
+ 
+        /* ^ 已展开的父节点 */
+        i.el-tree-node__expand-icon.expanded {
+          transform: rotate(0deg); // 取消旋转
+          -webkit-transform: rotate(0deg); // 取消旋转
+ 
+          &::before {
+            font-family: element-ui-icons;
+            font-style: normal;
+            content: "\e6d8";
+            color: #000000;
+            border: 1px solid #606266;
+            border-radius: 2px;
+          }
+        }
+        /* / 已展开的父节点 */
+ 
+        /* ^ 叶子节点 */
+        i.el-tree-node__expand-icon.is-leaf {
+ 
+          &::before {
+            display: none;
+          }
+        }
+        /* / 叶子节点 */
+ 
+        /* ^ 复选框 */
+        .el-checkbox {
+          margin: 0 7px 0 2px;
+ 
+          .el-checkbox__inner {
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+            border: 1px solid #bbb;
+          }
+ 
+          .el-checkbox__input.is-checked .el-checkbox__inner,
+          .el-checkbox__input.is-indeterminate .el-checkbox__inner {
+            border: 1px solid #5e7ce0;
+          }
+        }
+        /* / 复选框 */
+ 
+        .el-tree-node__content {
+          small {
+            font-size: 13px;
+          }
+        }
+      }
+      /* ---- ---- ---- ---- /（节点对齐）---- ---- ---- ---- */
+ 
+      /* ---- ---- ---- ---- ^（文字高亮）---- ---- ---- ---- */
+      .el-tree-node.is-current {
+        .el-tree-node__content {
+          small {
+            color: #5e7ce0;
+          }
+        }
+ 
+        .el-tree-node__children {
+          small {
+            color: unset;
+          }
+        }
+      }
+      /* ---- ---- ---- ---- /（文字高亮）---- ---- ---- ---- */
+ 
+      /* ---- ---- ---- ---- ^（新增辅助线）---- ---- ---- ---- */
+      /* ^ 树节点 */
+      .el-tree-node {
+        position: relative;
+        width: auto;
+        // width: max-content; // 显示文字宽度
+        padding-left: 13px;
+ 
+        &::before {
+          width: 1px;
+          height: 100%;
+          content: '';
+          position: absolute;
+          top: -38px;
+          bottom: 0;
+          left: 0;
+          right: auto;
+          border-width: 1px;
+          border-left: 1px solid #b8b9bb;
+        }
+ 
+        &::after {
+          width: 13px;
+          height: 13px;
+          content: '';
+          position: absolute;
+          z-index: 0;
+          left: 0;
+          right: auto;
+          top: 12px;
+          bottom: auto;
+          border-width: 1px;
+          border-top: 1px solid #b8b9bb;
+        }
+ 
+        .el-tree-node__content {
+          position: relative;
+          z-index: 1;
+          color: #000;
+          padding-left: 0 !important;
+ 
+          /* ^ 复选框 */
+          .el-checkbox {
+            margin: 0 10px 0 5.5px;
+          }
+          /* / 复选框 */
+        }
+        
+        .el-tree-node__children {
+          padding-left: 12px;
+        }
+ 
+        &:last-child::before {
+          height: 50px;
+        }
+      }
+      /* / 树节点 */
+ 
+      /* ^ 第一层节点 */
+      > .el-tree-node {
+        padding-left: 0;
+ 
+        &::before {
+          border-left: none;
+        }
+ 
+        &::after {
+          border-top: none;
+        }
+      }
+      /* / 第一层节点 */
+ 
+      /* ^ 叶子节点 */
+      i.el-tree-node__expand-icon.is-leaf {
+        display: none;
+      }
+      /* / 叶子节点 */
+ 
+      /* ^ 设置子节点左外边距 */
+      .el-tree-node__content:has(.is-leaf) {
+        // color: #00ffff;
+        margin-left: 25px !important;
+      }
+      /* / 设置子节点左外边距 */
+      /* ---- ---- ---- ---- /（新增辅助线）---- ---- ---- ---- */
+    }
+  }
+</style>

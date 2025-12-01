@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <!-- Use Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"> -->
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="//unpkg.com/element-plus/dist/index.css" />
+     <link rel="stylesheet" href="https://unpkg.com/element-tree-line/dist/style.css">
+  
+    <!-- <script src="//unpkg.com/element-plus"></script> -->
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://unpkg.com/element-tree-line/dist/element-tree-line.umd.min.js"></script>
+
+    <style>
+        .el-tree-node__label {
+            font-size: 20px;
+            /* 您可以根据需要调整字体大小 */
+        }
+
+          .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .tree-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .custom-node {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tree-icon {
+            color: #409eff;
+        }
+        .title {
+            text-align: center;
+            color: #303133;
+            margin-bottom: 20px;
+        }
+    </style>
+    
+
+       
+    </style>
+
+
+
+
+</head>
+
+<body>
+
+    <div id="app">
+        <div class="container">
+            <h1>Element Tree Line 修复演示</h1>
+            <div class="success-message">
+                ✅ 已正确修复模块导入问题
+            </div>
+            
+            <div class="tree-container">
+                <el-tree 
+                    :data="data" 
+                    :props="defaultProps"
+                    node-key="id"
+                    default-expand-all
+                    :highlight-current="true">
+                    <template #default="{ node }">
+                        <!-- 使用全局注册的组件 -->
+                        <element-tree-line 
+                            :node="node" 
+                            :showLabelLine="true"
+                            :indent="20"
+                        />
+                    </template>
+                </el-tree>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script src="./index.js"></script>
+
+
+</body>
+
+</html>

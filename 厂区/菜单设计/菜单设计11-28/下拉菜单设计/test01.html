@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Element Plus CDN示例</title>
+    <!-- 引入Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- 引入Element Plus样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <!-- 引入Element Plus JS -->
+    <script src="https://unpkg.com/element-plus/dist/index.full.js"></script>
+    <!-- 引入Element Plus图标 -->
+    <script src="https://unpkg.com/@element-plus/icons-vue/dist/index.umd.js"></script>
+
+    <style>
+        .el-tree-node__content {
+            display: flex;
+            align-items: center;
+        }
+        .el-tree-node__label {
+            font-size: 20px;
+            color: #303133;
+            margin-left: 6px; /* 确保文字与图标之间有间距 */
+            cursor: pointer; /* 添加鼠标指针样式，表示可点击 */
+        }
+        .custom-tree-node {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            font-size: 20px; /* 根据需要调整字体大小 */
+            color: #303133; /* 根据需要调整文字颜色 */
+        }
+        .folder-icon {
+            color: #e6a23c;
+            margin-right: 6px;
+        }
+        .file-icon {
+            color: #909399;
+            margin-right: 6px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .demo-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e4e7ed;
+        }
+        .demo-title {
+            font-size: 25px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #303133;
+            border-bottom: 2px solid #409eff;
+            padding-bottom: 8px;
+        }
+        .tree-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        /* 添加线条样式 */
+        .el-tree-node__children {
+            border-left: 1px dashed #ccc; /* 左侧线条 */
+            padding-left: 16px; /* 确保子节点不与线条重叠 */
+            margin-left: 8px; /* 确保线条有适当的间距 */
+        }
+        .el-tree-node__children::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            border-left: 1px dashed #ccc; /* 左侧线条 */
+        }
+        .el-tree-node__content {
+            position: relative;
+        }
+        .el-tree-node__content::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            border-left: 1px dashed #ccc; /* 左侧线条 */
+        }
+        .el-tree-node__content:last-child::before {
+            height: 50%; /* 最后一个子节点的线条只显示一半 */
+        }
+        .el-tree-node__content::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 16px; /* 确保线条不与节点内容重叠 */
+            border-top: 1px dashed #ccc; /* 水平线条 */
+        }
+        .el-tree-node__children::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 16px; /* 确保线条不与节点内容重叠 */
+            border-top: 1px dashed #ccc; /* 水平线条 */
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="header">
+                <h1>Element Plus Tree 自定义图标示例</h1>
+                <p>多种方式自定义树形组件节点图标</p>
+            </div>
+
+            <div class="tree-container">
+                <!-- 示例1: 使用Element Plus图标 -->
+                <div class="demo-section">
+                    <div class="demo-title">1. 使用Element Plus内置图标</div>
+                    <el-tree
+                        ref="tree"
+                        :data="data"
+                        :props="defaultProps"
+                        node-key="id"
+                        default-expand-all
+                        :expand-on-click-node="false"
+                        @node-click="handleNodeClick">
+                        <template #default="{ node, data }">
+                            <span class="custom-tree-node">
+                                <el-icon v-if="data.type === 'folder'" class="folder-icon"><Folder /></el-icon>
+                                <el-icon v-else class="file-icon"><Document /></el-icon>
+                                <span class="el-tree-node__label">{{ node.label }}</span>
+                            </span>
+                        </template>
+                    </el-tree>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 创建Vue应用
+        const { createApp, ref } = Vue;
+        const { ElTree } = ElementPlus;
+        const { Folder, Document } = ElementPlusIconsVue; // 导入图标组件
+
+        // 树节点数据
+        const data = ref([
+            {
+                id: 1,
+                label: '一级 1',
+                type: 'folder',
+                children: [
+                    {
+                        id: 4,
+                        label: '二级 1-1',
+                        type: 'document',
+                        children: [
+                            {
+                                id: 9,
+                                label: '三级 1-1-1',
+                                type: 'document',
+                            },
+                            {
+                                id: 10,
+                                label: '三级 1-1-2',
+                                type: 'document',
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                id: 2,
+                label: '一级 2',
+                type: 'folder',
+                children: [
+                    {
+                        id: 5,
+                        label: '二级 2-1',
+                        type: 'document',
+                    },
+                    {
+                        id: 6,
+                        label: '二级 2-2',
+                        type: 'document',
+                    },
+                ],
+            },
+            {
+                id: 3,
+                label: '一级 3',
+                type: 'folder',
+                children: [
+                    {
+                        id: 7,
+                        label: '二级 3-1',
+                        type: 'document',
+                    },
+                    {
+                        id: 8,
+                        label: '二级 3-2',
+                        type: 'document',
+                    },
+                ],
+            },
+        ]);
+
+        // 树节点属性
+        const defaultProps = {
+            children: 'children',
+            label: 'label',
+        };
+
+        // 创建应用实例
+        const app = createApp({
+            components: {
+                ElTree,
+            },
+            setup() {
+                const tree = ref(null);
+
+                const handleNodeClick = (data, node, component) => {
+                    if (node.expanded) {
+                        tree.value.collapse(data);
+                    } else {
+                        tree.value.expand(data);
+                    }
+                };
+
+                return {
+                    tree,
+                    data,
+                    defaultProps,
+                    Folder,
+                    Document,
+                    handleNodeClick,
+                };
+            },
+        });
+
+        // 挂载应用
+        app.mount('#app');
+    </script>
+
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</body>
+</html>

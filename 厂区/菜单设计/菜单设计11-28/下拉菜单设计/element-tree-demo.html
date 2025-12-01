@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Element Plus 树形组件示例</title>
+  <!-- 引入Element Plus样式 -->
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+  <!-- 引入Element Plus图标 -->
+  <link rel="stylesheet" href="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.css">
+  <!-- 引入Vue和Element Plus -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/element-plus"></script>
+  <style>
+    .el-tree {
+      margin-top: 20px;
+      font-size: 16px;
+      font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", Arial, sans-serif;
+    }
+    .el-tree-node__content {
+      height: 36px;
+      display: flex;
+      align-items: center;
+    }
+    .el-tree-node__expand-icon {
+      font-size: 16px;
+      margin-right: 5px;
+    }
+    .el-icon-folder {
+      color: #409EFF;
+      margin-right: 8px;
+    }
+    .el-icon-document {
+      color: #67C23A;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h2>厂区报表树形结构</h2>
+    <el-tree
+      :data="treeData"
+      :props="defaultProps"
+      :render-content="renderContent"
+      node-key="id"
+      default-expand-all
+      :expand-on-click-node="false"
+      show-line
+    ></el-tree>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+    
+    createApp({
+      methods: {
+        renderContent(h, { node, data }) {
+          const iconClass = data.icon;
+          return h('span', { class: 'custom-tree-node' }, [
+            h('i', { 
+              class: iconClass,
+              style: {
+                marginRight: '8px'
+              }
+            }),
+            h('span', node.label)
+          ]);
+        }
+      },
+      data() {
+        return {
+          treeData: [
+            {
+              id: 1,
+              label: '厂区-湿法分厂例',
+              icon: 'el-icon-folder',
+              type: 'folder',
+              children: [
+                {
+                  id: 11,
+                  label: '磨矿石类',
+                  icon: 'el-icon-folder',
+                  type: 'folder',
+                  children: [
+                    {
+                      id: 111,
+                      label: '45期球磨报表',
+                      icon: 'el-icon-document',
+                      type: 'file'
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              id: 2,
+              label: '硫酸报表类',
+              icon: 'el-icon-folder',
+              type: 'folder',
+              children: [
+                {
+                  id: 21,
+                  label: '-硫酸一工段',
+                  icon: 'el-icon-folder',
+                  type: 'folder',
+                  children: [
+                    {
+                      id: 211,
+                      label: '--硫酸一产出报表',
+                      icon: 'el-icon-document',
+                      type: 'file'
+                    }
+                  ]
+                },
+                {
+                  id: 22,
+                  label: 'Level two 2-2',
+                  icon: 'el-icon-folder',
+                  type: 'folder',
+                  children: [
+                    {
+                      id: 221,
+                      label: 'Level three 2-2-1',
+                      icon: 'el-icon-document',
+                      type: 'file'
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              id: 3,
+              label: 'Level one 3',
+              icon: 'el-icon-folder',
+              type: 'folder',
+              children: [
+                {
+                  id: 31,
+                  label: 'Level two 3-1',
+                  icon: 'el-icon-folder',
+                  type: 'folder',
+                  children: [
+                    {
+                      id: 311,
+                      label: 'Level three 3-1-1',
+                      icon: 'el-icon-document',
+                      type: 'file'
+                    }
+                  ]
+                },
+                {
+                  id: 32,
+                  label: 'Level two 3-2',
+                  icon: 'el-icon-folder',
+                  type: 'folder',
+                  children: [
+                    {
+                      id: 321,
+                      label: 'Level three 3-2-1',
+                      icon: 'el-icon-document',
+                      type: 'file'
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          defaultProps: {
+            children: 'children',
+            label: 'label',
+            isLeaf: (data) => {
+              return data.type === 'file';
+            }
+          }
+        };
+      }
+    }).use(ElementPlus).mount('#app');
+  </script>
+</body>
+</html>

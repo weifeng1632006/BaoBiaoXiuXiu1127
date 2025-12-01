@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Element Plus 文件树示例</title>
+  <!-- 引入 Element Plus 样式 -->
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/lib/index.css">
+  <!-- 引入 Vue -->
+ <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <!-- 引入 Element Plus -->
+ <script src="https://unpkg.com/element-plus"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- 标题 -->
+    <div class="header">
+      <span>请选择需要下载的包（文件名：导出时间）</span>
+      <i class="el-icon-close" @click="closeModal"></i>
+    </div>
+
+    <!-- 文件树 -->
+    <el-tree
+      :data="treeData"
+      :render-content="renderContent"
+      node-key="label"
+      style="max-height: 400px; overflow-y: auto;"
+    />
+
+    <!-- 底部工具栏 -->
+    <div class="footer">
+      <el-button
+        @click="closeModal"
+        icon="el-icon-circle-close"
+        type="danger"
+      >
+        关闭
+      </el-button>
+      <el-button @click="downloadAll" type="primary">
+        <i class="el-icon-download" />下载选中的文件
+      </el-button>
+    </div>
+  </div>
+
+  <!-- 定义 Vue 实例 -->
+  <script>
+    // 初始化 Vue 实例
+    const app = Vue.createApp({
+      data() {
+        return {
+          treeData: [
+            {
+              label: '所有导出文件',
+              children: [
+                {
+                  label: '顶级目录1',
+                  children: [
+                    {
+                      label: '二级目录1',
+                      children: [
+                        {
+                          label: '压缩包.zip',
+                          isFile: true,
+                          fileType: 'zip',
+                        },
+                        {
+                          label: '文档.txt',
+                          isFile: true,
+                          fileType: 'txt',
+                        },
+                      ],
+                    },
+                    {
+                      label: '二级目录2',
+                      children: [
+                        {
+                          label: '三级目录1',
+                          children: [
+                            {
+                              label: '四级目录1',
+                              children: [
+                                {
+                                  label: 'excel表格.xlsx',
+                                  isFile: true,
+                                  fileType: 'xlsx',
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                        {
+                          label: '三级目录2',
+                          children: [],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  label: '顶级目录2',
+                  children: [],
+                },
+              ],
+            },
+          ],
+        };
+      },
+      methods: {
+        // 定义每个节点的自定义渲染内容
+        renderContent(h, { node, data }) {
+          const { label, isFile, fileType } = data;
+
+          // 判断是否是文件夹
+          if (!isFile) {
+            return h(
+              'span',
+              { class: 'node-label' },
+              [
+                h('i', { class: 'el-icon-folder' }),
+                h(
+                  'span',
+                  { style: { marginLeft: '8px' } },
+                  label
+                ),
+              ]
+            );
+          }
+
+          // 如果是文件，展示文件图标和下载按钮
+          return h(
+            'span',
+            { class: 'node-label file-node' },
+            [
+              h(
+                'i',
+                { class: `el-icon-document${fileType}` },
+                ''
+              ),
+              h(
+                'span',
+                { style: { marginLeft: '8px' } },
+                label
+              ),
+              h(
+                'i',
+                {
+                  class: 'el-icon-download',
+                  style: { marginLeft: '12px', cursor: 'pointer' },
+                  onClick: () => this.downloadFile(label),
+                },
+                ''
+              ),
+            ]
+          );
+        },
+
+        // 模拟下载文件
+        downloadFile(label) {
+          alert(`正在下载文件：${label}`);
+        },
+
+        // 模拟关闭弹窗
+        closeModal() {
+          alert('关闭弹窗');
+        },
+
+        // 模拟下载所有文件
+        downloadAll() {
+          alert('下载所有选中的文件');
+        },
+      },
+    });
+
+    // 使用 Element Plus 插件
+    app.use(ElementPlus);
+    app.mount('#app');
+  </script>
+
+  <!-- 自定义样式 -->
+  <style>
+    .file-tree-container {
+      border: 1px solid #dcdfe6;
+      border-radius: 4px;
+      padding: 16px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #dcdfe6;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+    }
+
+    .node-label {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .file-node {
+      font-size: 14px;
+      color: #606266;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+
+    .footer .el-button {
+      margin-left: 8px;
+    }
+  </style>
+</body>
+</html>

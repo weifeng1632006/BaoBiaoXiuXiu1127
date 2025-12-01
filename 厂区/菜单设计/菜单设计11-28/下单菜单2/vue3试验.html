@@ -1,0 +1,399 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Element Plus Tree 自定义图标示例</title>
+    <!-- Element Plus CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <!-- Element Plus Icons -->
+    <link rel="stylesheet" href="https://unpkg.com/@element-plus/icons-vue/dist/index.css">
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Element Plus -->
+    <script src="https://unpkg.com/element-plus"></script>
+
+      <!-- 引入图标库，Element Plus默认使用的是Element UI的图标库 -->
+    <script src="https://unpkg.com/element-plus/lib/locale/lang/zh-cn.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .demo-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e4e7ed;
+        }
+        .demo-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #303133;
+            border-bottom: 2px solid #409eff;
+            padding-bottom: 8px;
+        }
+        .tree-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .custom-icon {
+            color: #f56c6c;
+            margin-right: 6px;
+        }
+        .folder-icon {
+            color: #e6a23c;
+            margin-right: 6px;
+        }
+        .file-icon {
+            color: #909399;
+            margin-right: 6px;
+        }
+        .status-icon {
+            margin-right: 6px;
+        }
+        .status-online {
+            color: #67c23a;
+        }
+        .status-offline {
+            color: #f56c6c;
+        }
+        .status-busy {
+            color: #e6a23c;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="header">
+                <h1>Element Plus Tree 自定义图标示例</h1>
+                <p>多种方式自定义树形组件节点图标</p>
+            </div>
+
+            <div class="tree-container">
+                <!-- 示例1: 使用Element Plus图标 -->
+                <div class="demo-section">
+                    <div class="demo-title">1. 使用Element Plus内置图标</div>
+                    <el-tree
+                        :data="elementIconsData"
+                        :props="defaultProps"
+                        node-key="id"
+                        default-expand-all
+                        :expand-on-click-node="false">
+                        <template #default="{ node, data }">
+                            <span class="custom-node">
+                                <el-icon v-if="data.type === 'folder'"><Folder /></el-icon>
+                                <el-icon v-else><Document /></el-icon>
+                                <span>{{ node.label }}</span>
+                            </span>
+                        </template>
+                    </el-tree>
+                </div>
+
+                <!-- 示例2: 使用自定义SVG图标 -->
+                <div class="demo-section">
+                    <div class="demo-title">2. 使用自定义SVG图标</div>
+                    <el-tree
+                        :data="svgIconsData"
+                        :props="defaultProps"
+                        node-key="id"
+                        default-expand-all
+                        :expand-on-click-node="false">
+                        <template #default="{ node, data }">
+                            <span class="custom-node">
+                                <span v-html="getSvgIcon(data.type)" class="custom-icon"></span>
+                                <span>{{ node.label }}</span>
+                            </span>
+                        </template>
+                    </el-tree>
+                </div>
+
+                <!-- 示例3: 使用Font Awesome图标 -->
+                <div class="demo-section">
+                    <div class="demo-title">3. 使用Font Awesome图标</div>
+                    <el-tree
+                        :data="faIconsData"
+                        :props="defaultProps"
+                        node-key="id"
+                        default-expand-all
+                        :expand-on-click-node="false">
+                        <template #default="{ node, data }">
+                            <span class="custom-node">
+                                <i :class="getFaIcon(data.type)" class="custom-icon"></i>
+                                <span>{{ node.label }}</span>
+                            </span>
+                        </template>
+                    </el-tree>
+                </div>
+
+                <!-- 示例4: 基于状态的动态图标 -->
+                <div class="demo-section">
+                    <div class="demo-title">4. 基于状态的动态图标</div>
+                    <el-tree
+                        :data="statusIconsData"
+                        :props="defaultProps"
+                        node-key="id"
+                        default-expand-all
+                        :expand-on-click-node="false">
+                        <template #default="{ node, data }">
+                            <span class="custom-node">
+                                <el-icon :class="`status-icon status-${data.status}`">
+                                    <CircleCheck v-if="data.status === 'online'" />
+                                    <CircleClose v-else-if="data.status === 'offline'" />
+                                    <Warning v-else />
+                                </el-icon>
+                                <span>{{ node.label }}</span>
+                                <el-tag :type="getStatusType(data.status)" size="small" style="margin-left: 8px;">
+                                    {{ data.status }}
+                                </el-tag>
+                            </span>
+                        </template>
+                    </el-tree>
+                </div>
+
+                <!-- 示例5: 复杂自定义图标 -->
+                <div class="demo-section">
+                    <div class="demo-title">5. 复杂自定义图标（带徽章）</div>
+                    <el-tree
+                        :data="complexIconsData"
+                        :props="defaultProps"
+                        node-key="id"
+                        default-expand-all
+                        :expand-on-click-node="false">
+                        <template #default="{ node, data }">
+                            <span class="custom-node">
+                                <span class="icon-with-badge">
+                                    <el-icon class="folder-icon"><Folder /></el-icon>
+                                    <span v-if="data.count" class="badge">{{ data.count }}</span>
+                                </span>
+                                <span>{{ node.label }}</span>
+                                <span v-if="data.size" style="margin-left: 8px; color: #909399; font-size: 12px;">
+                                    ({{ data.size }})
+                                </span>
+                            </span>
+                        </template>
+                    </el-tree>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue;
+        const { ElTree, ElIcon, ElTag } = ElementPlus;
+        
+        // Element Plus 图标组件
+        const { Folder, Document, CircleCheck, CircleClose, Warning } = ElementPlusIconsVue;
+
+        const app = createApp({
+            components: {
+                ElTree,
+                ElIcon,
+                ElTag,
+                Folder,
+                Document,
+                CircleCheck,
+                CircleClose,
+                Warning
+            },
+            setup() {
+                const defaultProps = {
+                    children: 'children',
+                    label: 'label'
+                };
+
+                // 示例1数据：使用Element Plus图标
+                const elementIconsData = ref([
+                    {
+                        id: 1,
+                        label: '项目文档',
+                        type: 'folder',
+                        children: [
+                            { id: 2, label: '需求文档.pdf', type: 'file' },
+                            { id: 3, label: '设计稿.sketch', type: 'file' },
+                            { id: 4, label: '测试报告.docx', type: 'file' }
+                        ]
+                    },
+                    {
+                        id: 5,
+                        label: '图片资源',
+                        type: 'folder',
+                        children: [
+                            { id: 6, label: '产品图片', type: 'folder', children: [] },
+                            { id: 7, label: '用户头像', type: 'folder', children: [] }
+                        ]
+                    }
+                ]);
+
+                // 示例2数据：使用自定义SVG图标
+                const svgIconsData = ref([
+                    {
+                        id: 1,
+                        label: '开发工具',
+                        type: 'tool',
+                        children: [
+                            { id: 2, label: 'VS Code', type: 'code' },
+                            { id: 3, label: 'Chrome', type: 'browser' },
+                            { id: 4, label: 'Postman', type: 'api' }
+                        ]
+                    },
+                    {
+                        id: 5,
+                        label: '设计软件',
+                        type: 'design',
+                        children: [
+                            { id: 6, label: 'Figma', type: 'design' },
+                            { id: 7, label: 'Photoshop', type: 'image' }
+                        ]
+                    }
+                ]);
+
+                // 示例3数据：使用Font Awesome图标
+                const faIconsData = ref([
+                    {
+                        id: 1,
+                        label: '社交媒体',
+                        type: 'social',
+                        children: [
+                            { id: 2, label: '微信', type: 'wechat' },
+                            { id: 3, label: '微博', type: 'weibo' },
+                            { id: 4, label: '抖音', type: 'video' }
+                        ]
+                    },
+                    {
+                        id: 5,
+                        label: '办公软件',
+                        type: 'office',
+                        children: [
+                            { id: 6, label: 'Word', type: 'word' },
+                            { id: 7, label: 'Excel', type: 'excel' },
+                            { id: 8, label: 'PowerPoint', type: 'ppt' }
+                        ]
+                    }
+                ]);
+
+                // 示例4数据：基于状态的动态图标
+                const statusIconsData = ref([
+                    {
+                        id: 1,
+                        label: '服务器集群',
+                        status: 'online',
+                        children: [
+                            { id: 2, label: 'Web服务器', status: 'online' },
+                            { id: 3, label: '数据库服务器', status: 'busy' },
+                            { id: 4, label: '缓存服务器', status: 'offline' }
+                        ]
+                    },
+                    {
+                        id: 5,
+                        label: '客户端设备',
+                        status: 'busy',
+                        children: [
+                            { id: 6, label: 'PC工作站', status: 'online' },
+                            { id: 7, label: '移动设备', status: 'online' }
+                        ]
+                    }
+                ]);
+
+                // 示例5数据：复杂自定义图标
+                const complexIconsData = ref([
+                    {
+                        id: 1,
+                        label: '用户管理',
+                        count: 156,
+                        size: '2.3MB',
+                        children: [
+                            { id: 2, label: '活跃用户', count: 89, size: '1.1MB' },
+                            { id: 3, label: '新注册用户', count: 67, size: '1.2MB' }
+                        ]
+                    },
+                    {
+                        id: 4,
+                        label: '订单管理',
+                        count: 234,
+                        size: '4.7MB',
+                        children: [
+                            { id: 5, label: '待处理订单', count: 45, size: '0.9MB' },
+                            { id: 6, label: '已完成订单', count: 189, size: '3.8MB' }
+                        ]
+                    }
+                ]);
+
+                // 获取SVG图标
+                const getSvgIcon = (type) => {
+                    const icons = {
+                        tool: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M21.71 20.29L18 16.61A7 7 0 1 0 16.61 18l3.68 3.68a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42zM11 18a5 5 0 1 1 5-5 5 5 0 0 1-5 5z"/></svg>',
+                        code: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M8.7 15.9L4.8 12l3.9-3.9a.9.9 0 1 0-1.3-1.3l-4.2 4.2a.9.9 0 0 0 0 1.3l4.2 4.2a.9.9 0 1 0 1.3-1.3zm6.6 0l3.9-3.9-3.9-3.9a.9.9 0 1 0-1.3 1.3l3.9 3.9-3.9 3.9a.9.9 0 1 0 1.3 1.3zm-3.5-9.8a.9.9 0 0 0-1.1.1l-7 9a.9.9 0 0 0 .1 1.1.9.9 0 0 0 1.1.1l7-9a.9.9 0 0 0-.1-1.1z"/></svg>',
+                        browser: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9zm-9 7a7 7 0 1 0-7-7 7 7 0 0 0 7 7zm-5-7a5 5 0 1 1 5 5 5 5 0 0 1-5-5z"/></svg>',
+                        api: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M14 12l-4-4-4 4 4 4 4-4z"/></svg>',
+                        design: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/></svg>',
+                        image: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 16H5V5h14v14zm-5-7l-3 4-2-2-3 4h13z"/></svg>'
+                    };
+                    return icons[type] || icons.tool;
+                };
+
+                // 获取Font Awesome图标类名
+                const getFaIcon = (type) => {
+                    const icons = {
+                        social: 'fas fa-users',
+                        wechat: 'fab fa-weixin',
+                        weibo: 'fab fa-weibo',
+                        video: 'fas fa-video',
+                        office: 'fas fa-briefcase',
+                        word: 'fas fa-file-word',
+                        excel: 'fas fa-file-excel',
+                        ppt: 'fas fa-file-powerpoint'
+                    };
+                    return icons[type] || 'fas fa-file';
+                };
+
+                // 获取状态标签类型
+                const getStatusType = (status) => {
+                    const types = {
+                        online: 'success',
+                        offline: 'danger',
+                        busy: 'warning'
+                    };
+                    return types[status] || 'info';
+                };
+
+                return {
+                    elementIconsData,
+                    svgIconsData,
+                    faIconsData,
+                    statusIconsData,
+                    complexIconsData,
+                    defaultProps,
+                    getSvgIcon,
+                    getFaIcon,
+                    getStatusType
+                };
+            }
+        });
+
+        app.use(ElementPlus);
+        app.mount('#app');
+    </script>
+
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</body>
+</html>

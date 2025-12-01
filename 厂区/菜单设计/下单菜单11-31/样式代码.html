@@ -1,0 +1,466 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Element Plus Tree with Search</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus/dist/index.full.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #409EFF 0%, #67C23A 100%);
+            color: white;
+            padding: 24px 32px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        .content {
+            padding: 32px;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 32px;
+            min-height: 600px;
+        }
+        .search-panel {
+            background: #f8f9fa;
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid #e4e7ed;
+        }
+        .search-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #303133;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tree-panel {
+            background: white;
+            border: 1px solid #e4e7ed;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        }
+        .tree-container {
+            height: 500px;
+            overflow-y: auto;
+            border: 1px solid #e4e7ed;
+            border-radius: 6px;
+            padding: 16px;
+        }
+        .stats {
+            margin-top: 16px;
+            padding: 12px 16px;
+            background: #f0f9ff;
+            border-radius: 6px;
+            border: 1px solid #bae0ff;
+            font-size: 14px;
+            color: #1890ff;
+        }
+        .highlight-node {
+            background-color: #fff2e8;
+            color: #fa541c;
+            border-radius: 3px;
+            padding: 2px 4px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #fafafa;
+            color: #909399;
+            border-top: 1px solid #e4e7ed;
+        }
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .container {
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="header">
+                <h1><el-icon><Search /></el-icon> Element Plus 树形搜索组件</h1>
+                <p>支持关键字搜索、高亮显示、节点过滤的现代化树形控件</p>
+            </div>
+            
+            <div class="content">
+                <div class="search-panel">
+                    <div class="search-title">
+                        <el-icon><Setting /></el-icon> 搜索配置
+                    </div>
+                    
+                    <el-form label-width="80px">
+                        <el-form-item label="搜索内容">
+                            <el-input 
+                                v-model="searchText" 
+                                placeholder="输入关键字搜索节点"
+                                clearable
+                                @input="handleSearch"
+                                @clear="clearSearch"
+                            >
+                                <template #prefix>
+                                    <el-icon><Search /></el-icon>
+                                </template>
+                            </el-input>
+                        </el-form-item>
+                        
+                        <el-form-item label="搜索模式">
+                            <el-radio-group v-model="searchMode" @change="handleSearch">
+                                <el-radio label="fuzzy">模糊匹配</el-radio>
+                                <el-radio label="exact">精确匹配</el-radio>
+                            </el-radio-group>
+                        </el-form-item>
+                        
+                        <el-form-item label="高亮显示">
+                            <el-switch 
+                                v-model="enableHighlight" 
+                                @change="handleSearch"
+                            />
+                        </el-form-item>
+                        
+                        <el-form-item label="自动展开">
+                            <el-switch 
+                                v-model="autoExpand" 
+                                @change="handleAutoExpand"
+                            />
+                        </el-form-item>
+                    </el-form>
+                    
+                    <div class="stats">
+                        <el-icon><InfoFilled /></el-icon>
+                        共找到 {{ matchedCount }} 个匹配节点
+                    </div>
+                </div>
+                
+                <div class="tree-panel">
+                    <div class="search-title">
+                        <el-icon><FolderOpened /></el-icon> 树形数据展示
+                    </div>
+                    
+                    <div class="tree-container">
+                        <el-tree
+                            ref="treeRef"
+                            :data="treeData"
+                            :props="defaultProps"
+                            :filter-node-method="filterNode"
+                            :default-expanded-keys="expandedKeys"
+                            node-key="id"
+                            highlight-current
+                            :expand-on-click-node="false"
+                        >
+                            <template #default="{ node, data }">
+                                <span class="custom-tree-node">
+                                    <span v-if="enableHighlight && searchText" v-html="highlightText(node.label)"></span>
+                                    <span v-else>{{ node.label }}</span>
+                                    <el-tag v-if="data.type" size="small" :type="getTagType(data.type)">
+                                        {{ data.type }}
+                                    </el-tag>
+                                </span>
+                            </template>
+                        </el-tree>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <p>© 2024 Element Plus Tree Search Component | 基于 Vue 3 + Element Plus</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+        const { ElTree, ElInput, ElForm, ElFormItem, ElRadioGroup, ElRadio, ElSwitch, ElTag, ElIcon } = ElementPlus;
+        const { Search, Setting, FolderOpened, InfoFilled } = ElementPlusIconsVue;
+        
+        createApp({
+            setup() {
+                const treeRef = ref();
+                const searchText = ref('');
+                const searchMode = ref('fuzzy');
+                const enableHighlight = ref(true);
+                const autoExpand = ref(true);
+                const matchedCount = ref(0);
+                const expandedKeys = ref([]);
+                
+                const defaultProps = {
+                    children: 'children',
+                    label: 'label'
+                };
+                
+                const treeData = ref([
+                    {
+                        id: 1,
+                        label: '前端开发',
+                        type: 'category',
+                        children: [
+                            {
+                                id: 11,
+                                label: 'Vue.js',
+                                type: 'framework',
+                                children: [
+                                    { id: 111, label: 'Vue 3', type: 'version' },
+                                    { id: 112, label: 'Vue 2', type: 'version' },
+                                    { id: 113, label: 'Vue Router', type: 'library' },
+                                    { id: 114, label: 'Vuex', type: 'library' }
+                                ]
+                            },
+                            {
+                                id: 12,
+                                label: 'React',
+                                type: 'framework',
+                                children: [
+                                    { id: 121, label: 'React 18', type: 'version' },
+                                    { id: 122, label: 'React Router', type: 'library' },
+                                    { id: 123, label: 'Redux', type: 'library' }
+                                ]
+                            },
+                            {
+                                id: 13,
+                                label: 'Angular',
+                                type: 'framework',
+                                children: [
+                                    { id: 131, label: 'Angular 16', type: 'version' },
+                                    { id: 132, label: 'RxJS', type: 'library' }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        label: '后端开发',
+                        type: 'category',
+                        children: [
+                            {
+                                id: 21,
+                                label: 'Node.js',
+                                type: 'runtime',
+                                children: [
+                                    { id: 211, label: 'Express', type: 'framework' },
+                                    { id: 212, label: 'Koa', type: 'framework' },
+                                    { id: 213, label: 'NestJS', type: 'framework' }
+                                ]
+                            },
+                            {
+                                id: 22,
+                                label: 'Java',
+                                type: 'language',
+                                children: [
+                                    { id: 221, label: 'Spring Boot', type: 'framework' },
+                                    { id: 222, label: 'MyBatis', type: 'library' }
+                                ]
+                            },
+                            {
+                                id: 23,
+                                label: 'Python',
+                                type: 'language',
+                                children: [
+                                    { id: 231, label: 'Django', type: 'framework' },
+                                    { id: 232, label: 'Flask', type: 'framework' },
+                                    { id: 233, label: 'FastAPI', type: 'framework' }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        id: 3,
+                        label: '数据库',
+                        type: 'category',
+                        children: [
+                            { id: 31, label: 'MySQL', type: 'database' },
+                            { id: 32, label: 'PostgreSQL', type: 'database' },
+                            { id: 33, label: 'MongoDB', type: 'database' },
+                            { id: 34, label: 'Redis', type: 'database' }
+                        ]
+                    },
+                    {
+                        id: 4,
+                        label: '开发工具',
+                        type: 'category',
+                        children: [
+                            { id: 41, label: 'VS Code', type: 'editor' },
+                            { id: 42, label: 'WebStorm', type: 'editor' },
+                            { id: 43, label: 'Git', type: 'tool' },
+                            { id: 44, label: 'Docker', type: 'tool' }
+                        ]
+                    }
+                ]);
+                
+                const filterNode = (value, data, node) => {
+                    if (!searchText.value) {
+                        matchedCount.value = 0;
+                        return true;
+                    }
+                    
+                    const label = data.label || '';
+                    let isMatch = false;
+                    
+                    if (searchMode.value === 'exact') {
+                        isMatch = label.includes(value);
+                    } else {
+                        isMatch = label.toLowerCase().includes(value.toLowerCase());
+                    }
+                    
+                    if (isMatch) {
+                        matchedCount.value++;
+                    }
+                    
+                    return isMatch;
+                };
+                
+                const handleSearch = () => {
+                    matchedCount.value = 0;
+                    if (treeRef.value) {
+                        treeRef.value.filter(searchText.value);
+                        
+                        if (autoExpand.value && searchText.value) {
+                            expandMatchedNodes(treeData.value);
+                        }
+                    }
+                };
+                
+                const clearSearch = () => {
+                    matchedCount.value = 0;
+                    expandedKeys.value = [];
+                };
+                
+                const expandMatchedNodes = (nodes) => {
+                    const expandKeys = [];
+                    
+                    const traverse = (nodeList, parentKeys = []) => {
+                        nodeList.forEach(node => {
+                            const currentKeys = [...parentKeys, node.id];
+                            
+                            const label = node.label || '';
+                            let isMatch = false;
+                            
+                            if (searchMode.value === 'exact') {
+                                isMatch = label.includes(searchText.value);
+                            } else {
+                                isMatch = label.toLowerCase().includes(searchText.value.toLowerCase());
+                            }
+                            
+                            if (isMatch) {
+                                expandKeys.push(...currentKeys);
+                            }
+                            
+                            if (node.children) {
+                                traverse(node.children, currentKeys);
+                            }
+                        });
+                    };
+                    
+                    traverse(nodes);
+                    expandedKeys.value = [...new Set(expandKeys)];
+                };
+                
+                const handleAutoExpand = () => {
+                    if (autoExpand.value && searchText.value) {
+                        handleSearch();
+                    } else {
+                        expandedKeys.value = [];
+                    }
+                };
+                
+                const highlightText = (text) => {
+                    if (!searchText.value || !enableHighlight.value) return text;
+                    
+                    const regex = new RegExp(`(${searchText.value})`, 'gi');
+                    return text.replace(regex, '<span class="highlight-node">$1</span>');
+                };
+                
+                const getTagType = (type) => {
+                    const typeMap = {
+                        category: 'primary',
+                        framework: 'success',
+                        library: 'warning',
+                        version: 'info',
+                        language: '',
+                        database: 'danger',
+                        tool: '',
+                        editor: '',
+                        runtime: 'success'
+                    };
+                    
+                    return typeMap[type] || '';
+                };
+                
+                onMounted(() => {
+                    console.log('Tree component mounted');
+                });
+                
+                return {
+                    treeRef,
+                    searchText,
+                    searchMode,
+                    enableHighlight,
+                    autoExpand,
+                    matchedCount,
+                    expandedKeys,
+                    treeData,
+                    defaultProps,
+                    filterNode,
+                    handleSearch,
+                    clearSearch,
+                    handleAutoExpand,
+                    highlightText,
+                    getTagType
+                };
+            }
+        })
+        .use(ElementPlus)
+        .component('ElTree', ElTree)
+        .component('ElInput', ElInput)
+        .component('ElForm', ElForm)
+        .component('ElFormItem', ElFormItem)
+        .component('ElRadioGroup', ElRadioGroup)
+        .component('ElRadio', ElRadio)
+        .component('ElSwitch', ElSwitch)
+        .component('ElTag', ElTag)
+        .component('ElIcon', ElIcon)
+        .component('Search', Search)
+        .component('Setting', Setting)
+        .component('FolderOpened', FolderOpened)
+        .component('InfoFilled', InfoFilled)
+        .mount('#app');
+    </script>
+</body>
+</html>

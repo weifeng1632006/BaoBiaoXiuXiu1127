@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Element Plus CDN示例</title>
+    <!-- 引入Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- 引入Element Plus样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <!-- 引入Element Plus JS -->
+    <script src="https://unpkg.com/element-plus"></script>
+    <!-- 引入Element Plus图标 -->
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+
+    <!-- 引入Element Plus -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <script src="https://unpkg.com/element-plus/dist/index.full.js"></script>
+    <!-- 引入图标库 -->
+    <script src="https://unpkg.com/@element-plus/icons-vue/dist/index.umd.js"></script>
+    <style>
+        .el-tree-node__label {
+            font-size: 20px;
+            /* 您可以根据需要调整字体大小 */
+        }
+
+          .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .tree-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .custom-node {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tree-icon {
+            color: #409eff;
+        }
+        .title {
+            text-align: center;
+            color: #303133;
+            margin-bottom: 20px;
+        }
+    </style>
+    
+
+       
+    </style>
+
+
+
+
+</head>
+
+<body>
+
+    <div id="app">
+
+        <!-- <h3>wyth:{{message}}</h3> -->
+
+        <!-- <el-button>{{ message }}</el-button> -->
+
+        <h2>以下是未做美化的样式，仅示例逻辑</h2>
+
+        <h3>目录样式：</h3>
+
+        <el-tree style="max-width: 600px" :data="data" :props="defaultProps" @node-click="handleNodeClick"
+            :accordion="true" :indent="48"   >
+
+        </el-tree>
+
+    </div>
+
+
+
+    <!-- <script src="./index2.js"></script> -->
+
+
+</body>
+
+</html>

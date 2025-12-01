@@ -1,0 +1,97 @@
+nst<!DOCTYPE html>
+<html>
+<head>
+    <title>Pyodide DataFrame转JSON示例</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+</head>
+<body>
+    <h1>Pyodide DataFrame转JSON示例</h1>
+    
+    <div>
+        <h2>DataFrame转换结果</h2>
+        <pre id="jsonResult"></pre>
+    </div>
+    
+    <div>
+        <h2>转换选项</h2>
+        <select id="orientOption">
+            <option value="columns">columns (默认)</option>
+            <option value="index">index</option>
+            <option value="records">records</option>
+            <option value="split">split</option>
+            <option value="table">table</option>
+        </select>
+        <button onclick="convertToJson()">转换为JSON</button>
+    </div>
+    
+    <script>
+        let pyodide;
+        
+        async function initPyodide() {
+            pyodide = await loadPyodide();
+            
+            // 安装pandas
+            await pyodide.loadPackage("pandas");
+            
+            // 定义Python函数
+            pyodide.runPython(`
+                import pandas as pd
+                import json
+                
+                # 创建示例DataFrame
+                def create_sample_df():
+                    data = {
+                        'Name': ['Alice', 'Bob', 'Charlie', 'David'],
+                        'Age': [25, 30, 35, 40],
+                        'City': ['New York', 'London', 'Paris', 'Tokyo']
+                    }
+                    return pd.DataFrame(data)
+                
+                # DataFrame转JSON函数
+                def df_to_json(df, orient='columns'):
+                    return df.to_json(orient=orient)
+            `);
+            
+            console.log("Pyodide初始化完成，Pandas已安装");
+        }
+        
+        // 转换DataFrame为JSON并显示
+        async function convertToJson() {
+            if (!pyodide) {
+                console.error("Pyodide未初始化");
+                return;
+            }
+            
+            try {
+                // 获取选择的转换选项
+                const orient = document.getElementById("orientOption").value;
+                
+                // 创建示例DataFrame
+                const df = pyodide.globals.get("create_sample_df")();
+                
+                // 转换为JSON
+                const jsonStr = pyodide.globals.get("df_to_json")(df, orient);
+                
+                // 格式化JSON以便显示
+                const formattedJson = JSON.stringify(JSON.parse(jsonStr), null, 2);
+                
+                // 显示结果
+                document.getElementById("jsonResult").textContent = formattedJson;
+                
+                console.log("转换完成，JSON格式:", orient);
+            } catch (error) {
+                console.error("转换出错:", error);
+                document.getElementById("jsonResult").textContent = 
+                    "转换出错: " + error.message;
+            }
+        }
+        
+        // 页面加载时初始化Pyodide
+        window.onload = async function() {
+            await initPyodide();
+            // 初始转换
+            convertToJson();
+        };
+    </script>
+</body>
+</html>

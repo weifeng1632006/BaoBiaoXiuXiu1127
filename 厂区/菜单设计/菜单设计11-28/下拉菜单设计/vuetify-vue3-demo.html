@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vuetify 3 + Vue 3 示例</title>
+  <!-- Vuetify CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@3.4.13/dist/vuetify.min.css" rel="stylesheet">
+  <!-- 引入Material Design Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+</head>
+<body>
+  <div id="app">
+    <v-app>
+      <v-main>
+        <v-container>
+          <h2>Vuetify 3 组件示例</h2>
+          
+          <!-- 按钮示例 -->
+          <v-btn color="primary" class="ma-4">主要按钮</v-btn>
+          <v-btn color="secondary" class="ma-4">次要按钮</v-btn>
+          
+          <!-- 输入框示例 -->
+          <v-text-field
+            v-model="message"
+            label="输入内容"
+            class="mt-4"
+          ></v-text-field>
+          
+          <!-- 显示输入的内容 -->
+          <p class="mt-4">你输入的内容是: {{ message }}</p>
+          
+          <!-- 表格示例 -->
+          <v-table class="mt-6">
+            <thead>
+              <tr>
+                <th class="text-left">ID</th>
+                <th class="text-left">名称</th>
+                <th class="text-left">类型</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, index) in items" :key="index">
+                <td>{{ item.id }}</td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.type }}</td>
+              </tr>
+            </tbody>
+          </v-table>
+          
+          <!-- 对话框示例 -->
+          <v-btn color="success" class="ma-4" @click="dialog = true">显示对话框</v-btn>
+          
+          <v-dialog v-model="dialog" width="500">
+            <v-card>
+              <v-card-title class="text-h5">
+                对话框示例
+              </v-card-title>
+              <v-card-text>
+                这是一个Vuetify对话框示例。点击确定按钮关闭此对话框。
+              </v-card-text>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="primary" @click="dialog = false">确定</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </v-container>
+      </v-main>
+    </v-app>
+  </div>
+
+  <!-- Vue 3 -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.4.38/dist/vue.global.min.js"></script>
+  <!-- Vuetify -->
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@3.4.13/dist/vuetify.min.js"></script>
+  
+  <script>
+    const { createApp } = Vue;
+    
+    createApp({
+      data() {
+        return {
+          message: '',
+          dialog: false,
+          items: [
+            { id: 1, name: '项目1', type: '文件夹' },
+            { id: 2, name: '项目2', type: '文件' },
+            { id: 3, name: '项目3', type: '文件夹' }
+          ]
+        }
+      }
+    }).use(Vuetify).mount('#app');
+  </script>
+</body>
+</html>
