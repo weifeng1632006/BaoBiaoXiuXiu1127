@@ -26,11 +26,17 @@ createApp({
 
             await runpy(pycdoes)
 
+             const pycdoes2=await getGitHubFileContent("pythoncode/testpy1201/testpy2.py")
+
+            await runpy(pycdoes2)
+
 
             //取出py文件里的变量
             const pythonGlobals = window.pyodide.globals;
             const names_js = pythonGlobals.get('name');
+            const myname=pythonGlobals.get('myname1');
             console.log(`output->names_js`,names_js)
+            console.log(`output->myname`,myname)
 
         
         };
