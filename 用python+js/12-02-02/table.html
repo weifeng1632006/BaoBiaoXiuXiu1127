@@ -1,0 +1,540 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>销售数据管理系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://unpkg.com/dayjs/dayjs.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .header h1 {
+            color: #2d3748;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .header p {
+            color: #718096;
+            font-size: 16px;
+        }
+        
+        .main-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+        }
+        
+        .filter-section {
+            padding: 24px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .filter-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .date-filter-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f7fafc;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .date-label {
+            font-weight: 600;
+            color: #4a5568;
+            min-width: 80px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-left: auto;
+        }
+        
+        .filter-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .reset-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+        
+        .table-section {
+            padding: 0;
+        }
+        
+        .el-table {
+            border: 2px solid #ff0000 !important;
+            border-radius: 0 !important;
+            width: 100% !important;
+        }
+        
+        .el-table th {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white !important;
+            font-weight: 600;
+            border-right: 1px solid #ff0000 !important;
+            border-bottom: 1px solid #ff0000 !important;
+            padding: 16px 12px;
+        }
+        
+        .el-table td {
+            border-right: 1px solid #ff0000 !important;
+            border-bottom: 1px solid #ff0000 !important;
+            padding: 14px 12px;
+        }
+        
+        .el-table .cell {
+            padding: 8px 12px;
+            line-height: 1.5;
+        }
+        
+        .el-table--border {
+            border: 2px solid #ff0000 !important;
+        }
+        
+        .el-table--border::after {
+            background-color: #ff0000 !important;
+        }
+        
+        .summary-section {
+            padding: 20px 24px;
+            background: #f7fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: #a0aec0;
+            font-size: 14px;
+            margin-top: 24px;
+        }
+        
+        @media (max-width: 768px) {
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .button-group {
+                margin-left: 0;
+                justify-content: stretch;
+            }
+            
+            .filter-btn, .reset-btn {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="app-container">
+            <div class="header">
+                <h1>
+                    <i class="el-icon-data-analysis"></i>
+                    销售数据管理系统
+                </h1>
+                <p>通过日期筛选查看销售数据，支持列宽调整和自动汇总统计</p>
+            </div>
+            
+            <div class="main-card">
+                <div class="filter-section">
+                    <div class="filter-row">
+                        <div class="date-filter-group">
+                            <span class="date-label">开始日期：</span>
+                            <el-date-picker
+                                v-model="startDate"
+                                type="date"
+                                placeholder="选择开始日期"
+                                value-format="YYYY-MM-DD"
+                                style="width: 150px;"
+                            />
+                        </div>
+                        <div class="date-filter-group">
+                            <span class="date-label">结束日期：</span>
+                            <el-date-picker
+                                v-model="endDate"
+                                type="date"
+                                placeholder="选择结束日期"
+                                value-format="YYYY-MM-DD"
+                                style="width: 150px;"
+                            />
+                        </div>
+                        <div class="button-group">
+                            <button class="filter-btn" @click="filterData">
+                                <i class="el-icon-search"></i> 筛选数据
+                            </button>
+                            <button class="reset-btn" @click="resetFilter">
+                                <i class="el-icon-refresh"></i> 重置筛选
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-section">
+                    <el-table
+                        :data="filteredData"
+                        border
+                        style="width: 100%"
+                        :row-class-name="tableRowClassName"
+                        @sort-change="handleSortChange"
+                        show-summary
+                        :summary-method="getSummaries"
+                        :fit="true"
+                    >
+                        <el-table-column
+                            prop="date"
+                            label="日期"
+                            sortable
+                            resizable
+                            min-width="120"
+                        >
+                        </el-table-column>
+                        <el-table-column
+                            prop="product"
+                            label="产品名称"
+                            sortable
+                            resizable
+                            min-width="180"
+                        >
+                        </el-table-column>
+                        <el-table-column
+                            prop="category"
+                            label="产品类别"
+                            sortable
+                            resizable
+                            min-width="140"
+                        >
+                        </el-table-column>
+                        <el-table-column
+                            prop="quantity"
+                            label="数量"
+                            sortable
+                            resizable
+                            min-width="100"
+                        >
+                        </el-table-column>
+                        <el-table-column
+                            prop="price"
+                            label="单价"
+                            sortable
+                            resizable
+                            min-width="120"
+                        >
+                            <template #default="scope">
+                                ¥{{ scope.row.price.toFixed(2) }}
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                            prop="amount"
+                            label="金额"
+                            sortable
+                            resizable
+                            min-width="140"
+                        >
+                            <template #default="scope">
+                                ¥{{ scope.row.amount.toFixed(2) }}
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                            prop="region"
+                            label="销售区域"
+                            sortable
+                            resizable
+                            min-width="120"
+                        >
+                        </el-table-column>
+                        <el-table-column
+                            prop="salesperson"
+                            label="销售人员"
+                            sortable
+                            resizable
+                            min-width="120"
+                        >
+                        </el-table-column>
+                    </el-table>
+                </div>
+                
+                <div class="summary-section">
+                    <h3 style="margin-bottom: 16px; color: #2d3748;">统计汇总</h3>
+                    <div class="summary-grid">
+                        <div class="stat-card" style="border-left-color: #48bb78;">
+                            <div class="stat-label">总数量</div>
+                            <div class="stat-value" style="color: #48bb78;">{{ totalQuantity }}</div>
+                        </div>
+                        <div class="stat-card" style="border-left-color: #4299e1;">
+                            <div class="stat-label">总金额</div>
+                            <div class="stat-value" style="color: #4299e1;">¥{{ totalAmount.toFixed(2) }}</div>
+                        </div>
+                        <div class="stat-card" style="border-left-color: #ed8936;">
+                            <div class="stat-label">平均单价</div>
+                            <div class="stat-value" style="color: #ed8936;">¥{{ averagePrice.toFixed(2) }}</div>
+                        </div>
+                        <div class="stat-card" style="border-left-color: #9f7aea;">
+                            <div class="stat-label">记录数量</div>
+                            <div class="stat-value" style="color: #9f7aea;">{{ filteredData.length }} 条</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <p>© 2025 销售数据管理系统 | 最后更新: {{ currentTime }}</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+        
+        createApp({
+            setup() {
+                const startDate = ref('');
+                const endDate = ref('');
+                const currentTime = ref('');
+                
+                const tableData = ref([
+                    { date: '2025-01-15', product: '笔记本电脑', category: '电子产品', quantity: 5, price: 5999.00, amount: 29995.00, region: '华东', salesperson: '张三' },
+                    { date: '2025-01-18', product: '智能手机', category: '电子产品', quantity: 12, price: 3999.00, amount: 47988.00, region: '华南', salesperson: '李四' },
+                    { date: '2025-01-20', product: '办公桌椅', category: '办公用品', quantity: 8, price: 899.00, amount: 7192.00, region: '华北', salesperson: '王五' },
+                    { date: '2025-01-22', product: '打印机', category: '办公设备', quantity: 3, price: 1899.00, amount: 5697.00, region: '华东', salesperson: '赵六' },
+                    { date: '2025-01-25', product: '平板电脑', category: '电子产品', quantity: 7, price: 3299.00, amount: 23093.00, region: '西南', salesperson: '钱七' },
+                    { date: '2025-01-28', product: '显示器', category: '电子产品', quantity: 6, price: 1299.00, amount: 7794.00, region: '西北', salesperson: '孙八' },
+                    { date: '2025-02-01', product: '键盘鼠标', category: '电脑配件', quantity: 25, price: 199.00, amount: 4975.00, region: '华东', salesperson: '周九' },
+                    { date: '2025-02-05', product: '服务器', category: '企业设备', quantity: 2, price: 29999.00, amount: 59998.00, region: '华南', salesperson: '吴十' },
+                    { date: '2025-02-10', product: '投影仪', category: '办公设备', quantity: 4, price: 2499.00, amount: 9996.00, region: '华中', salesperson: '郑一' },
+                    { date: '2025-02-15', product: '扫描仪', category: '办公设备', quantity: 6, price: 899.00, amount: 5394.00, region: '华北', salesperson: '王二' }
+                ]);
+
+                const filteredData = computed(() => {
+                    let data = [...tableData.value];
+                    
+                    if (startDate.value && endDate.value) {
+                        data = data.filter(item => {
+                            const itemDate = item.date;
+                            return itemDate >= startDate.value && itemDate <= endDate.value;
+                        });
+                    }
+                    
+                    return data;
+                });
+
+                const totalQuantity = computed(() => {
+                    return filteredData.value.reduce((sum, item) => sum + item.quantity, 0);
+                });
+
+                const totalAmount = computed(() => {
+                    return filteredData.value.reduce((sum, item) => sum + item.amount, 0);
+                });
+
+                const averagePrice = computed(() => {
+                    return filteredData.value.length > 0 
+                        ? filteredData.value.reduce((sum, item) => sum + item.price, 0) / filteredData.value.length
+                        : 0;
+                });
+
+                const filterData = () => {
+                    ElMessage.success(`已筛选出 ${filteredData.value.length} 条记录`);
+                };
+
+                const resetFilter = () => {
+                    startDate.value = '';
+                    endDate.value = '';
+                    ElMessage.info('筛选条件已重置');
+                };
+
+                const tableRowClassName = ({ rowIndex }) => {
+                    return '';
+                };
+
+                const handleSortChange = ({ column, prop, order }) => {
+                    console.log('排序变化:', prop, order);
+                };
+
+                const getSummaries = (param) => {
+                    const { columns, data } = param;
+                    const sums = [];
+                    columns.forEach((column, index) => {
+                        if (index === 0) {
+                            sums[index] = '合计';
+                            return;
+                        }
+                        
+                        const values = data.map(item => Number(item[column.property]));
+                        if (!values.every(value => isNaN(value))) {
+                            sums[index] = values.reduce((prev, curr) => {
+                                const value = Number(curr);
+                                if (!isNaN(value)) {
+                                    return prev + curr;
+                                } else {
+                                    return prev;
+                                }
+                            }, 0);
+                            
+                            if (column.property === 'price') {
+                                sums[index] = '¥' + (sums[index] / data.length).toFixed(2);
+                            } else if (column.property === 'amount') {
+                                sums[index] = '¥' + sums[index].toFixed(2);
+                            } else if (column.property === 'quantity') {
+                                sums[index] = sums[index];
+                            } else {
+                                sums[index] = '';
+                            }
+                        } else {
+                            sums[index] = '';
+                        }
+                    });
+                    
+                    return sums;
+                };
+
+                const updateTime = () => {
+                    const now = new Date();
+                    currentTime.value = now.toLocaleString('zh-CN');
+                };
+
+                onMounted(() => {
+                    updateTime();
+                    setInterval(updateTime, 1000);
+                });
+
+                return {
+                    startDate,
+                    endDate,
+                    currentTime,
+                    filteredData,
+                    totalQuantity,
+                    totalAmount,
+                    averagePrice,
+                    filterData,
+                    resetFilter,
+                    tableRowClassName,
+                    handleSortChange,
+                    getSummaries
+                };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>
+<code_end>
+
+该代码实现了一个完整的销售数据管理系统，具有以下特点：
+
+1. **响应式设计**：采用现代化UI设计，支持不同屏幕尺寸
+2. **日期筛选功能**：独立的开始日期和结束日期选择器
+3. **表格特性**：
+   - 红色边框表格
+   - 列宽可手动调整
+   - 自动填充满容器宽度
+   - 支持排序功能
+4. **数据汇总**：
+   - 表格底部自动计算合计数
+   - 独立的统计卡片显示关键指标
+5. **交互体验**：
+   - 毛玻璃效果和渐变背景
+   - 悬停动画和阴影效果
+   - 实时时间显示
+6. **完整功能**：包含数据筛选、重置、排序等完整的数据操作功能

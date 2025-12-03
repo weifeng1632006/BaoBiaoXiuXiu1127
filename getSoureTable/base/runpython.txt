@@ -1,0 +1,1 @@
+*/30 * * * * /www/wwwroot/getSoureTable/getSourceData.py

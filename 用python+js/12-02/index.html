@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <!-- Use Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"> -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <!-- 引入Element Plus JS -->
+    <script src="https://unpkg.com/element-plus"></script>
+    <!-- 引入Element Plus图标 -->
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+
+    <style>
+        .table-container {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin: 0 auto;
+            max-width: 1200px;
+        }
+
+        .filter-section {
+            margin-bottom: 20px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .date-filter {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .summary-row {
+            background-color: #0cdb38 !important;
+            font-weight: bold;
+            color: #e80914;
+        }
+
+        .table-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 16px 0;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 0;
+        }
+
+        .el-table {
+            border: 1px solid #e0e0e0;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .el-table th {
+            background-color: #f5f7fa;
+            color: #606266;
+            font-weight: 600;
+        }
+
+        .el-table td {
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .el-table .cell {
+            padding: 12px 16px;
+        }
+
+        .reset-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+        }
+
+        .filter-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .custom-summary {
+            background-color: #5cf509;
+            font-weight: bold;
+        }
+
+        .summary-row {
+            background-color: #09ed14 !important;
+            font-weight: bold;
+            color: #1976d2;
+        }
+        .el-table__footer-wrapper{
+
+             /* background-color: #09ed14 !important; */
+            font-weight: bold;
+            color: #19d22c;
+
+        }
+    </style>
+
+
+
+</head>
+
+<body>
+
+    <div id="app">
+
+
+
+        <div class="table-container">
+            <div class="card">
+                <h2 class="table-header" style="text-align: center; margin: 0; padding: 20px;">
+                    销售数据统计表
+                </h2>
+
+                <div class="filter-section">
+                    <div class="date-filter">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-weight: 600; color: #333;">开始日期：</span>
+                            <el-date-picker v-model="startDate" type="date" placeholder="选择开始日期"
+                                value-format="YYYY-MM-DD" style="width: 160px;" />
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-weight: 600; color: #333;">结束日期：</span>
+                            <el-date-picker v-model="endDate" type="date" placeholder="选择结束日期" value-format="YYYY-MM-DD"
+                                style="width: 160px;" />
+                        </div>
+                        <button class="filter-btn" @click="filterData">
+                            <i class="el-icon-search"></i> 筛选数据
+                        </button>
+                        <button class="reset-btn" @click="resetFilter">
+                            <i class="el-icon-refresh"></i> 重置筛选
+                        </button>
+                    </div>
+                </div>
+
+                <el-table :data="filteredData" border style="width: 100%" show-summary :summary-style="getSummaryStyle"
+                    @sort-change="handleSortChange">
+                    <el-table-column prop="取数日期" label="取数日期" sortable width="120" resizable>
+                    </el-table-column>
+                    <el-table-column prop="总折干" label="总折干" sortable width="180" resizable>
+                    </el-table-column>
+                    <el-table-column prop="夜班水分" label="夜班水分" sortable width="140" resizable>
+                    </el-table-column>
+                    <el-table-column prop="白班折干量" label="白班折干量" sortable width="100" resizable>
+                    </el-table-column>
+                    <!-- <el-table-column
+                        prop="price"
+                        label="单价"
+                        sortable
+                        width="120"
+                        resizable
+                    >
+                        <template #default="scope">
+                            ¥{{ scope.row.price.toFixed(2) }}
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        prop="amount"
+                        label="金额"
+                        sortable
+                        width="140"
+                        resizable
+                    >
+                        <template #default="scope">
+                            ¥{{ scope.row.amount.toFixed(2) }}
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        prop="region"
+                        label="销售区域"
+                        sortable
+                        width="120"
+                        resizable
+                    >
+                    </el-table-column>
+                    <el-table-column
+                        prop="salesperson"
+                        label="销售人员"
+                        sortable
+                        width="120"
+                        resizable
+                    >
+                    </el-table-column> -->
+                </el-table>
+
+                <!-- <div style="margin-top: 20px; padding: 16px; background: #e3f2fd; border-radius: 8px;">
+                    <h3 style="margin: 0 0 12px 0; color: #1976d2;">统计汇总</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                        <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #4caf50;">
+                            <div style="font-size: 12px; color: #666;">总数量</div>
+                        <div style="font-size: 18px; font-weight: bold; color: #4caf50;">{{ totalQuantity }}</div>
+                        </div>
+                        <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #2196f3;">
+                            <div style="font-size: 12px; color: #666;">总金额</div>
+                        <div style="font-size: 18px; font-weight: bold; color: #2196f3;">¥{{ totalAmount.toFixed(2) }}</div>
+                        </div>
+                        <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ff9800;">
+                            <div style="font-size: 12px; color: #666;">平均单价</div>
+                        <div style="font-size: 18px; font-weight: bold; color: #ff9800;">¥{{ averagePrice.toFixed(2) }}</div>
+                        </div>
+                        <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #9c27b0;">
+                            <div style="font-size: 12px; color: #666;">记录数量</div>
+                        <div style="font-size: 18px; font-weight: bold; color: #9c27b0;">{{ filteredData.length }} 条</div>
+                        </div>
+                    </div>
+                </div> -->
+            </div>
+        </div>
+
+
+
+    </div>
+
+
+
+    <script src="./index.js"></script>
+
+
+</body>
+
+</html>

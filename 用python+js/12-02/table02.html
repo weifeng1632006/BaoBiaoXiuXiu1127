@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Element Plus 表格合计行示例</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    
+    <!-- Use Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- 引入Element Plus CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <!-- 引入Element Plus JS -->
+    <script src="https://unpkg.com/element-plus"></script>
+    <!-- 引入Element Plus图标 -->
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+</head>
+
+<body>
+    <div id="app">
+        <el-table :data="tableData" style="width: 100%" show-summary :summary-method="getSummary">
+            <el-table-column prop="name" label="姓名" width="120" />
+            <el-table-column prop="amount" label="金额" width="120" sortable :formatter="formatAmount" />
+            <el-table-column prop="score" label="分数" width="120" sortable />
+            <el-table-column prop="custom" label="自定义数据" width="120" />
+        </el-table>
+    </div>
+
+<script>
+// index.js
+const { createApp, ref, onMounted } = Vue;
+
+createApp({
+    setup() {
+        const tableData = ref([]);
+
+        onMounted(() => {
+            // 使用Axios获取网页数据
+            axios.get('https://api.example.com/data')
+                .then(response => {
+                    // 假设API返回的数据是一个包含name, amount, score, custom属性的数组
+                    tableData.value = response.data;
+                })
+                .catch(error => {
+                    console.error('There was an error fetching the data!', error);
+                });
+        });
+
+        const formatAmount = (row, column, cellValue) => {
+            return cellValue.toLocaleString(); // 格式化金额
+        };
+
+        const getSummary = (param) => {
+            const { columns, data } = param;
+            const sums = [];
+            columns.forEach((column, index) => {
+                if (index === 0) {
+                    sums[index] = '合计';
+                    return;
+                }
+                const values = data.map(item => Number(item[column.property]));
+                if (!values.every(value => isNaN(value))) {
+                    switch (column.property) {
+                        case 'amount':
+                            sums[index] = values.reduce((prev, curr) => {
+                                const value = Number(curr);
+                                if (!isNaN(value)) {
+                                    return prev + curr;
+                                } else {
+                                    return prev;
+                                }
+                            }, 0).toLocaleString(); // 合计金额
+                            break;
+                        case 'score':
+                            sums[index] = values.reduce((prev, curr) => {
+                                const value = Number(curr);
+                                if (!isNaN(value)) {
+                                    return prev + curr;
+                                } else {
+                                    return prev;
+                                }
+                            }, 0) / values.length; // 平均分数
+                            break;
+                        case 'custom':
+                            sums[index] = '自定义合计'; // 自定义合计数据
+                            break;
+                        default:
+                            sums[index] = 'N/A';
+                            break;
+                    }
+                } else {
+                    sums[index] = 'N/A';
+                }
+            });
+
+            return sums;
+        };
+
+        return {
+            tableData,
+            formatAmount,
+            getSummary,
+        };
+    }
+}).use(ElementPlus).mount('#app');
+
+
+
+</script>
+
+
+
+    <script src="./index.js"></script>
+</body>
+
+</html>
