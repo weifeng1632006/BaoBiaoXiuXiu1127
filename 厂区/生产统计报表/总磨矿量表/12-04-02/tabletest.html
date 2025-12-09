@@ -1,0 +1,181 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自适应表格下载组件</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+ 
+    <style>
+        .table-container {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 24px;
+        }
+        .auto-table {
+            width: 100%;
+            border: 1px solid #e4e7ed;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .toolbar {
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .export-btn {
+            background: linear-gradient(45deg, #409eff, #67c23a);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+        }
+        .status-bar {
+            margin-top: 16px;
+            padding: 12px;
+            background: #f5f7fa;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #606266;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="table-container">
+            <div class="card">
+                <div class="toolbar">
+                    <div class="date-filter-group">
+                            <span class="date-label">开始日期：</span>
+                            <el-date-picker v-model="startDate" type="date" placeholder="选择开始日期"
+                                value-format="YYYY-MM-DD" style="width: 150px;" />
+                        </div>
+                        <div class="date-filter-group">
+                            <span class="date-label">结束日期：</span>
+                            <el-date-picker v-model="endDate" type="date" placeholder="选择结束日期" value-format="YYYY-MM-DD"
+                                style="width: 150px;" />
+
+                    </div>
+                    <h2 style="margin: 0; color: #303133;">数据表格展示</h2>
+                    <button class="export-btn" @click="exportToExcel">
+                        <i class="el-icon-download"> 导出Excel
+                    </button>
+                </div>
+                
+                <el-table
+                    class="auto-table"
+                    :data="tableData"
+                    style="width: 100%"
+                    :max-height="tableHeight"
+                    border
+                    stripe
+                    @selection-change="handleSelectionChange"
+                >
+                    <el-table-column type="selection" width="55"></el-table-column>
+                    <el-table-column 
+                        v-for="column in columns"
+                        :key="column.prop"
+                        :prop="column.prop"
+                        :label="column.label"
+                        :min-width="column.minWidth"
+                        show-overflow-tooltip
+                    >
+                        <template #default="scope">
+                            <span>{{ scope.row[column.prop] }}</span>
+                        </template>
+                    </el-table-column>
+                </el-table>
+                
+                <div class="status-bar">
+                    当前显示 {{ tableData.length }} 条记录，已选择 {{ selectedRows.length }} 条
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+
+        
+        createApp({
+            setup() {
+                const tableData = ref([
+                    { id: 1, name: '张三', age: 28, department: '技术部', position: '前端工程师', salary: 15000 },
+                    { id: 2, name: '李四', age: 32, department: '产品部', position: '产品经理', salary: 18000 },
+                    { id: 3, name: '王五', age: 25, department: '设计部', position: 'UI设计师', salary: 12000 },
+                    { id: 4, name: '赵六', age: 29, department: '技术部', position: '后端工程师', salary: 16000 },
+                    { id: 5, name: '钱七', age: 35, department: '管理层', position: '技术总监', salary: 25000 }
+                ]);
+                
+                const columns = ref([
+                    { prop: 'id', label: 'ID', minWidth: 80 },
+                    { prop: 'name', label: '姓名', minWidth: 100 },
+                    { prop: 'age', label: '年龄', minWidth: 80 },
+                    { prop: 'department', label: '部门', minWidth: 120 },
+                    { prop: 'position', label: '职位', minWidth: 150 },
+                    { prop: 'salary', label: '薪资', minWidth: 100 }
+                ]);
+                
+                const selectedRows = ref([]);
+                const tableHeight = ref(400);
+                
+                const handleSelectionChange = (selection) => {
+                    selectedRows.value = selection;
+                };
+                
+                const exportToExcel = () => {
+                    try {
+                        const dataToExport = selectedRows.value.length > 0 ? selectedRows.value : tableData.value;
+                        
+                        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+                        const workbook = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(workbook, worksheet, '数据表');
+                        
+                        XLSX.writeFile(workbook, `数据导出_${new Date().toLocaleDateString()}.xlsx`);
+                        
+                        ElMessage.success(`成功导出 ${dataToExport.length} 条数据`);
+                    } catch (error) {
+                        ElMessage.error('导出失败：' + error.message);
+                    }
+                };
+                
+                const calculateTableHeight = () => {
+                    const windowHeight = window.innerHeight;
+                    tableHeight.value = windowHeight - 200;
+                };
+                
+                onMounted(() => {
+                    calculateTableHeight();
+                    window.addEventListener('resize', calculateTableHeight);
+                });
+                
+                return {
+                    tableData,
+                    columns,
+                    selectedRows,
+                    tableHeight,
+                    handleSelectionChange,
+                    exportToExcel
+                };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

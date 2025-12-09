@@ -1,0 +1,164 @@
+<el-table-column label="白班数据">
+    <el-table-column fixed prop="白班折干量45" label="白班折干量45" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['白班折干量45'] === 0 || scope.row['白班折干量45'] === null ? '-' : scope.row['白班折干量45'].toFixed(2) }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="夜班折干量45" label="夜班折干量45" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['夜班折干量45'] === 0 || scope.row['夜班折干量45'] === null ? '-' : scope.row['夜班折干量45'].toFixed(2) }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="白班金属铜45" label="白班金属铜45" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['白班金属铜45'] === 0 || scope.row['白班金属铜45'] === null ? '-' : scope.row['白班金属铜45'].toFixed(2) }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="夜班金属铜45" label="夜班金属铜45" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['夜班金属铜45'] === 0 || scope.row['夜班金属铜45'] === null ? '-' : scope.row['夜班金属铜45'].toFixed(2) }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="白班含铜量45" label="白班含铜量45" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['白班含铜量45'] === 0 || scope.row['白班含铜量45'] === null ? '-' : (scope.row['白班含铜量45'] * 100).toFixed(2) + '%' }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="夜班含铜量45" label="夜班含铜量45" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['夜班含铜量45'] === 0 || scope.row['夜班含铜量45'] === null ? '-' : (scope.row['夜班含铜量45'] * 100).toFixed(2) + '%' }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="白班折干量12" label="白班折干量12" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['白班折干量12'] === 0 || scope.row['白班折干量12'] === null ? '-' : scope.row['白班折干量12'].toFixed(2) }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="夜班折干量12" label="夜班折干量12" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['夜班折干量12'] === 0 || scope.row['夜班折干量12'] === null ? '-' : scope.row['夜班折干量12'].toFixed(2) }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="白班金属铜12" label="白班金属铜12" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['白班金属铜12'] === 0 || scope.row['白班金属铜12'] === null ? '-' : scope.row['白班金属铜12'].toFixed(2) }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="夜班金属铜12" label="夜班金属铜12" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['夜班金属铜12'] === 0 || scope.row['夜班金属铜12'] === null ? '-' : scope.row['夜班金属铜12'].toFixed(2) }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="白班含铜量12" label="白班含铜量12" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['白班含铜量12'] === 0 || scope.row['白班含铜量12'] === null ? '-' : (scope.row['白班含铜量12'] * 100).toFixed(2) + '%' }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="夜班含铜量12" label="夜班含铜量12" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['夜班含铜量12'] === 0 || scope.row['夜班含铜量12'] === null ? '-' : (scope.row['夜班含铜量12'] * 100).toFixed(2) + '%' }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="白班氧化铜折铜3" label="白班氧化铜折铜3" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['白班氧化铜折铜3'] === 0 || scope.row['白班氧化铜折铜3'] === null ? '-' : scope.row['白班氧化铜折铜3'].toFixed(2) }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="夜班折干3" label="夜班折干3" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['夜班折干3'] === 0 || scope.row['夜班折干3'] === null ? '-' : scope.row['夜班折干3'].toFixed(2) }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="白班氧化铜3" label="白班氧化铜3" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['白班氧化铜3'] === 0 || scope.row['白班氧化铜3'] === null ? '-' : scope.row['白班氧化铜3'].toFixed(2) }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="夜班氧化铜折铜3" label="夜班氧化铜折铜3" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['夜班氧化铜折铜3'] === 0 || scope.row['夜班氧化铜折铜3'] === null ? '-' : scope.row['夜班氧化铜折铜3'].toFixed(2) }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="夜班氧化铜3" label="夜班氧化铜3" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['夜班氧化铜3'] === 0 || scope.row['夜班氧化铜3'] === null ? '-' : scope.row['夜班氧化铜3'].toFixed(2) }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="白班折干3" label="白班折干3" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['白班折干3'] === 0 || scope.row['白班折干3'] === null ? '-' : scope.row['白班折干3'].toFixed(2) }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="白班折干" label="白班折干" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['白班折干'] === 0 || scope.row['白班折干'] === null ? '-' : scope.row['白班折干'].toFixed(2) }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="白班金属铜" label="白班金属铜" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['白班金属铜'] === 0 || scope.row['白班金属铜'] === null ? '-' : scope.row['白班金属铜'].toFixed(2) }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="白班平均氧化铜" label="白班平均氧化铜" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['白班平均氧化铜'] === 0 || scope.row['白班平均氧化铜'] === null ? '-' : (scope.row['白班平均氧化铜'] * 100).toFixed(2) + '%' }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="夜班折干" label="夜班折干" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['夜班折干'] === 0 || scope.row['夜班折干'] === null ? '-' : scope.row['夜班折干'].toFixed(2) }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="夜班金属铜" label="夜班金属铜" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['夜班金属铜'] === 0 || scope.row['夜班金属铜'] === null ? '-' : scope.row['夜班金属铜'].toFixed(2) }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="夜班平均氧化铜" label="夜班平均氧化铜" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['夜班平均氧化铜'] === 0 || scope.row['夜班平均氧化铜'] === null ? '-' : (scope.row['夜班平均氧化铜'] * 100).toFixed(2) + '%' }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="当天折干" label="当天折干" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['当天折干'] === 0 || scope.row['当天折干'] === null ? '-' : scope.row['当天折干'].toFixed(2) }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="当天金属铜" label="当天金属铜" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['当天金属铜'] === 0 || scope.row['当天金属铜'] === null ? '-' : scope.row['当天金属铜'].toFixed(2) }}
+        </template>
+    </el-table-column>
+    <el-table-column fixed prop="当天平均氧化铜" label="当天平均氧化铜" sortable class="auto-table"
+                     @sort-change="handleSortChange" resizable min-width="70">
+        <template #default="scope">
+            {{ scope.row['当天平均氧化铜'] === 0 || scope.row['当天平均氧化铜'] === null ? '-' : (scope.row['当天平均氧化铜'] * 100).toFixed(2) + '%' }}
+        </template>
+    </el-table-column>
+</el-table-column>

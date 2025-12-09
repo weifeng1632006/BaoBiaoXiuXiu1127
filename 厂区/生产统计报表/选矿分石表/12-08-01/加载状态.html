@@ -1,0 +1,57 @@
+<template>
+  <el-table :data="tableData" v-loading="loading" :empty-text="null">
+    <template #empty>
+      <div v-if="loading">
+        <!-- 自定义加载状态 -->
+        <el-icon class="is-loading"><loading /></el-icon>
+        <span>加载中...</span>
+      </div>
+      <div v-else>
+        <!-- 自定义空数据状态 -->
+        <span>暂无数据</span>
+      </div>
+    </template>
+    <!-- 表格的其他列定义 -->
+    <el-table-column prop="name" label="名称" width="180"></el-table-column>
+    <el-table-column prop="value" label="值" width="180"></el-table-column>
+  </el-table>
+</template>
+
+<script>
+import { ref } from 'vue';
+import { ElTable, ElTableColumn, ElIcon, Loading } from 'element-plus';
+
+export default {
+  components: {
+    ElTable,
+    ElTableColumn,
+    ElIcon,
+    Loading,
+  },
+  setup() {
+    const loading = ref(true);
+    const tableData = ref([]);
+
+    // 模拟数据加载
+    setTimeout(() => {
+      loading.value = false;
+      tableData.value = [
+        { name: '项目1', value: '值1' },
+        { name: '项目2', value: '值2' },
+      ];
+    }, 2000);
+
+    return {
+      tableData,
+      loading,
+    };
+  },
+};
+</script>
+
+<style scoped>
+.is-loading {
+  margin-right: 10px;
+  font-size: 24px;
+}
+</style>

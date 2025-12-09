@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>凯鹏统计数据表格</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/@element-plus/icons-vue/dist/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- Use Vue 3 -->
+    <!-- <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script> -->
+     <script src="https://unpkg.com/vue@3.5.12/dist/vue.global.js"></script>
+
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"> -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <!-- 引入Element Plus JS -->
+    <script src="https://unpkg.com/element-plus"></script>
+    <!-- 引入Element Plus图标 -->
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+        .app-container {
+            padding: 5px;
+            /* background: linear-gradient(135deg, #ffff 0%, #764ba2 100%); */
+            /* background-color: #e4e7ed; */
+            min-height: 100vh;
+        }
+
+        .table-card {
+            /* background: rgb(89, 229, 54); */
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            /* min-height: 800px; */
+        }
+
+        .header {
+            background: linear-gradient(90deg, #409EFF, #67C23A);
+            color: white;
+            padding: 5px;
+            text-align: center;
+            height: 50px;
+            font-size: 25px;
+        }
+
+        .export-btn {
+            background: linear-gradient(45deg, #409eff, #67c23a);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            /* margin-left: 1000px; */
+        }
+
+        .search-area {
+            padding: 5px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e4e7ed;
+            font-size: 16px;
+        }
+
+        .table-container {
+            position: relative;
+            /* min-height: 600px; */
+        }
+
+        .fixed-table {
+            /* max-height: 600px;
+            min-height: 600px; */
+            overflow: auto;
+        }
+
+        .summary-row {
+            background-color: #f0f9ff;
+            font-weight: bold;
+        }
+
+        .el-table .fixed-header th {
+            background-color: #409EFF;
+            color: rgb(24, 197, 30);
+        }
+
+        .el-table .fixed-column {
+            background-color: #f5f7fa;
+        }
+
+        .el-table {
+            border: 2px solid #378968 !important;
+            border-radius: 0 !important;
+            width: 100% !important;
+
+            /*min-height: 800px!important;*/
+
+            /* height: 30px !important;
+            line-height: 30px !important; */
+        }
+
+        .el-table thead {
+            background-color: #2c23ad;
+            color: rgb(8, 8, 8) !important;
+            font-size: 15px;
+            font-style: normal;
+            text-align: center;
+            border-right: 1px solid #378968 !important;
+            border-bottom: 1px solid #378968 !important;
+        }
+
+        .el-table th {
+            /*background: linear-gradient(45deg, #667eea, #764ba2); */
+            color: rgb(1, 41, 38) !important;
+            /* font-weight: 600; */
+            border-right: 1px solid #378968 !important;
+            border-bottom: 1px solid #378968 !important;
+            /* padding: 16px 12px; */
+            font-size: 15px;
+            height: 10px !important;
+            text-align: center !important;
+            font-style: normal;
+        }
+
+        .el-table td {
+            border-right: 1px solid #378968 !important;
+            border-bottom: 1px solid #378968 !important;
+            padding: 14px 12px;
+
+            height: 20px !important;
+            line-height: 20px !important;
+            padding-bottom: 10px;
+            font-size: 14px;
+            color: black !important;
+            text-align: center;
+            /* min-height: auto; */
+            font-style: normal;
+
+
+
+        }
+
+
+
+        tbody {
+            color: rgb(8, 8, 8) !important;
+            font-size: 12px;
+            font-style: normal;
+            text-align: center;
+
+
+        }
+
+        .cell {
+            text-align: center !important;
+
+        }
+
+        .el-table__footer-wrapper tbody td {
+            background-color: #f0f9ff;
+            font-weight: bold;
+            color: #409EFF;
+        }
+
+        /* 合计行背景 */
+        tfoot td {
+            color: rgb(8, 8, 8) !important;
+
+            background-color: #5df118 !important;
+            font-style: normal;
+            text-align: center !important;
+            border-right: 1px solid #378968 !important;
+            border-bottom: 1px solid #378968 !important;
+        }
+
+        .footer {
+            text-align: center;
+            /* padding: 4px; */
+            color: #a0aec0;
+            font-size: 14px;
+            /* margin-top: 10px; */
+        }
+
+        .date-label {
+            text-align: right;
+        }
+        .titlename{
+
+            font-size: 25px;
+            color: #409eff;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+     
+       
+            <div class="table-card">
+
+
+                <div class="table-container">
+                  
+
+                    <div class="search-area">
+                        <el-row :gutter="10" align="middle">
+
+                             <el-col :span="6">
+                              
+
+
+                            </el-col>
+
+                            <el-col :span="7">
+                                <span class="date-label">开始日期：</span>
+                                <el-date-picker v-model="startDate" type="date" placeholder="选择开始日期"
+                                    value-format="YYYY-MM-DD" style="width: 150px;" />
+
+
+                            </el-col>
+
+                            <el-col :span="7">
+                                <span class="date-label">结束日期：</span>
+                                <el-date-picker v-model="endDate" type="date" placeholder="选择结束日期"
+                                    value-format="YYYY-MM-DD" style="width: 150px;" />
+                            </el-col>
+
+
+
+                            <el-col :span="4">
+                                <button class="export-btn" @click="exportToExcel">
+                                    <i class="el-icon-download"> 导出Excel
+                                </button>
+                            </el-col>
+
+
+
+
+                        </el-row>
+                    </div>
+                    <div class="fixed-table">
+                        <el-table :data="filteredData" border style="width: 100%" show-summary max-height="800"
+                            :summary-method="getSummaries" highlight-current-row="true">
+
+                              <!-- 加载状态 -->
+
+                        <template #empty>
+                            <div v-if="loading">
+                                <!-- 自定义加载状态 -->
+                                <el-icon class="is-loading">
+                                    <loading />
+                                </el-icon>
+                                <span>数据加载中，请稍待片刻......</span>
+                            </div>
+                            <div v-else>
+                                <!-- 自定义空数据状态 -->
+                                <span>暂无数据!</span>
+                            </div>
+                        </template>
+                            <!-- 日期 -->
+                            <el-table-column fixed prop="格式日期" label="数据日期" sortable class="auto-table"
+                                @sort-change="handleSortChange" max-height="700" resizable min-width="100">
+                            </el-table-column>
+
+
+                            <!-- 3 -->
+                            <ksname_1 first_title="氧化矿" second_title="三期半自磨（单位/吨）" propname1="三期湿重" clname1="湿重"
+                                propname2="三期干吨" clname2="干吨" propname3="三期氧化含铜量" clname3="氧化含铜量" propname4="三期折铜"
+                                clname4="折铜" mincolwidth="80"></ksname_1>
+
+
+                            <!-- 12 -->
+                            <ksname_1 first_title="氧化矿" second_title="一二期半自磨（单位/吨）" propname1="一二期湿吨" propname2="一二期干吨"
+                                propname3="一二期氧化含铜量" propname4="一二期折铜" clname1="湿重" clname2="干吨" clname3="氧化含铜量"
+                                clname4="折铜" mincolwidth="80">
+                            </ksname_1>
+                            <!-- 45 -->
+
+                            <ksname_1 first_title="氧化矿" second_title="4-5号磨机（单位/吨）" propname1="四五期湿吨" propname2="四五期干吨"
+                                propname3="四五期氧化含铜量" propname4="四五期折铜" clname1="湿重" clname2="干吨" clname3="氧化含铜量"
+                                clname4="折铜" mincolwidth="80">
+                            </ksname_1>
+
+                            <!-- 合计氧化 -->
+
+                            <ksname_1 first_title="氧化矿" second_title="氧化矿合计（单位/吨）" propname1="合计湿重" propname2="合计干吨"
+                                propname3="平均氧化含铜" propname4="合计折铜" clname1="湿重" clname2="干吨" clname3="氧化含铜量"
+                                clname4="折铜" mincolwidth="80">
+                            </ksname_1>
+
+                            <!-- 精铜数 -->
+
+                            <ksname_2 first_title="铜精矿" second_title="铜精矿合计（单位/吨）" propname1="合计精铜湿吨" propname2="合计精铜干吨"
+                                clname1="湿重" clname2="干吨" mincolwidth="80">
+                            </ksname_2>
+
+                        </el-table>
+                    </div>
+                </div>
+                <div class="footer">
+                    <p>© 凯鹏矿业 版权所有  最后打开时间: {{ currentTime }}</p>
+                </div>
+            </div>
+      
+    </div>
+
+    <!--<script src="./index.js"></script>-->
+</body>
+
+</html>

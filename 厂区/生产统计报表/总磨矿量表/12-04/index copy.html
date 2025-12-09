@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <!-- Use Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"> -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <!-- 引入Element Plus JS -->
+    <script src="https://unpkg.com/element-plus"></script>
+    <!-- 引入Element Plus图标 -->
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .app-container {
+            /* max-width: 1400px; */
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 16px;
+        }
+
+        .main-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+        }
+
+        .filter-section {
+            padding: 24px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .date-filter-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f7fafc;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .date-label {
+            font-weight: 600;
+            color: #4a5568;
+            min-width: 80px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-left: auto;
+        }
+
+        .filter-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .reset-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        /* 总设计风格 */
+        .cell {
+
+            text-align: center;
+            color: black;
+            font-size: 16px;
+            /* font-weight: 600; */
+        }
+
+
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        .table-section {
+            padding: 0;
+        }
+
+        .el-table {
+            border: 2px solid #378968 !important;
+            border-radius: 0 !important;
+            width: 100% !important;
+
+            /* height: 30px !important;
+            line-height: 30px !important; */
+        }
+
+        /* .el-table td {
+            border-right: 1px solid #ff0000 !important;
+            border-bottom: 1px solid #ff0000 !important;
+            height: 30px !important;
+            line-height: 30px !important;
+        } */
+
+
+        .el-table th {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white !important;
+            font-weight: 600;
+            border-right: 1px solid #378968 !important;
+            border-bottom: 1px solid #378968 !important;
+            padding: 16px 12px;
+        }
+
+        .el-table td {
+            border-right: 1px solid #378968 !important;
+            border-bottom: 1px solid #378968 !important;
+            padding: 14px 12px;
+
+            /* height: 20px !important;
+            line-height: 20px !important;
+            padding-bottom: 10px; */
+
+            /* height: 30px !important; */
+            /* line-height: 30px !important; */
+        }
+
+        .el-table .cell {
+            padding: 8px 12px;
+            line-height: 1;
+        }
+
+        .el-table--border {
+            border: 2px solid #378968 !important;
+        }
+
+        .el-table--border::after {
+            background-color: #378968 !important;
+        }
+
+        .summary-section {
+            padding: 20px 24px;
+            background: #f7fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: #a0aec0;
+            font-size: 14px;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .button-group {
+                margin-left: 0;
+                justify-content: stretch;
+            }
+
+            .filter-btn,
+            .reset-btn {
+                flex: 1;
+            }
+        }
+    </style>
+
+
+
+</head>
+
+<body>
+
+    <div id="app">
+        <div class="app-container">
+            <div class="header">
+                <h1>
+                    <i class="el-icon-data-analysis"></i>
+                    销售数据管理系统
+                </h1>
+                <p>通过日期筛选查看销售数据，支持列宽调整和自动汇总统计</p>
+            </div>
+
+            <div class="main-card">
+                <div class="filter-section">
+                    <div class="filter-row">
+                        <div class="date-filter-group">
+                            <span class="date-label">开始日期：</span>
+                            <el-date-picker v-model="startDate" type="date" placeholder="选择开始日期"
+                                value-format="YYYY-MM-DD" style="width: 150px;" />
+                        </div>
+                        <div class="date-filter-group">
+                            <span class="date-label">结束日期：</span>
+                            <el-date-picker v-model="endDate" type="date" placeholder="选择结束日期" value-format="YYYY-MM-DD"
+                                style="width: 150px;" />
+                        </div>
+                        <div class="button-group">
+                            <button class="filter-btn" @click="filterData">
+                                <i class="el-icon-search"></i> 筛选数据
+                            </button>
+                            <button class="reset-btn" @click="resetFilter">
+                                <i class="el-icon-refresh"></i> 重置筛选
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                
+
+                <div class="table-section">
+                    <el-table :data="filteredData" border :row-class-name="tableRowClassName"
+                        @sort-change="handleSortChange" show-summary :summary-method="getSummaries" :fit="true"
+                        style="width: 100%" height="600">
+                        <el-table-column fixed prop="格式日期" label="数据日期" sortable resizable min-width="120">
+                        </el-table-column>
+                        
+                         <ksname_3></ksname_3>
+                        <el-table-column label="氧化矿">
+
+                           
+                            <el-table-column label="三期半自磨">
+                                <el-table-column prop="三期湿重" label="湿重" sortable resizable min-width="180">
+                                    <template #default="scope">
+                                        {{ scope.row.三期湿重.toFixed(0) }}
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="三期干吨" label="干吨" sortable resizable min-width="140">
+                                    <template #default="scope">
+                                        {{ scope.row.三期干吨.toFixed(2) }}
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="三期氧化含铜量" label="氧化含铜量" sortable resizable min-width="100">
+                                    <template #default="scope">
+                                        {{ (scope.row.三期氧化含铜量*100).toFixed(2) }}%
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="三期折铜" label="折铜" sortable resizable min-width="100">
+                                    <template #default="scope">
+                                        {{ scope.row.三期折铜.toFixed(2) }}
+                                    </template>
+                                </el-table-column>
+                            </el-table-column>
+
+                            <!-- 一二期 -->
+                            <el-table-column label="一二期半自磨">
+                                <el-table-column prop="一二期湿吨" label="湿重" sortable resizable min-width="180">
+                                    <template #default="scope">
+                                        {{ scope.row.一二期湿吨.toFixed(0) }}
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="一二期干吨" label="干吨" sortable resizable min-width="140">
+                                    <template #default="scope">
+                                        {{ scope.row.一二期干吨.toFixed(2) }}
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="一二期氧化含铜量" label="氧化含铜量" sortable resizable min-width="100">
+                                    <template #default="scope">
+                                        {{ (scope.row.一二期氧化含铜量*100).toFixed(2) }}%
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="一二期折铜" label="折铜" sortable resizable min-width="100">
+                                    <template #default="scope">
+                                        {{ scope.row.一二期折铜.toFixed(2) }}
+                                    </template>
+                                </el-table-column>
+                            </el-table-column>
+
+                            <!-- 四五期 -->
+                               <el-table-column label="4-5号磨机">
+                                <el-table-column prop="四五期湿吨" label="湿重" sortable resizable min-width="180">
+                                    <template #default="scope">
+                                        {{ scope.row.四五期湿吨.toFixed(0) }}
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="四五期干吨" label="干吨" sortable resizable min-width="140">
+                                    <template #default="scope">
+                                        {{ scope.row.四五期干吨.toFixed(2) }}
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="四五期氧化含铜量" label="氧化含铜量" sortable resizable min-width="100">
+                                    <template #default="scope">
+                                        {{ (scope.row.四五期氧化含铜量*100).toFixed(2) }}%
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="四五期折铜" label="折铜" sortable resizable min-width="100">
+                                    <template #default="scope">
+                                        {{ scope.row.四五期折铜.toFixed(2) }}
+                                    </template>
+                                </el-table-column>
+                            </el-table-column>
+
+                        </el-table-column>
+                        </el-table-column>
+
+                    </el-table>
+                </div>
+
+
+            </div>
+
+            <div class="footer">
+                <p>© 2025 销售数据管理系统 | 最后更新: {{ currentTime }}</p>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script src="./index.js"></script>
+
+
+</body>
+
+</html>

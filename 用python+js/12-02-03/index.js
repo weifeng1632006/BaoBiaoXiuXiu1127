@@ -18,11 +18,13 @@ createApp({
 
         ]);
 
+        const base_urls="https://119.91.70.22/"
+
 
 
         const fetchData = async (outvalue, api) => {
 
-            await axios.get(api)
+            await axios.get(base_urls+api)
                 .then(response => {
                     // 假设API返回的数据可以直接用于显示
                     outvalue.value = response.data;
@@ -34,7 +36,7 @@ createApp({
                 });
         }
 
-        fetchData(tableData,"http://192.168.67.242:8001/test/")
+        fetchData(tableData,"factdata/scbb/xuankuang")
 
 
         //以下是固定模板------------------------------------

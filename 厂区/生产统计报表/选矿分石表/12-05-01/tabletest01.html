@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>多级表头示例</title>
+  <!-- 引入 Vue 3 -->
+  <script src="https://unpkg.com/vue@3.5.12/dist/vue.global.prod.js"></script>
+  <!-- 引入 Element Plus -->
+  <link rel="stylesheet" href="https://unpkg.com/element-plus@2.3.5/dist/index.css">
+  <script src="https://unpkg.com/element-plus@2.3.5/dist/index.full.global.prod.js"></script>
+</head>
+<body>
+  <div id="app">
+    <el-table :data="tableData">
+      <el-table-column label="title01">
+        <el-table-column label="子标题01">
+          <el-table-column
+            :prop="propname"
+            :label="labelname"
+            sortable
+            resizable
+            :min-width="mincolwidth"
+          >
+            <template #default="scope">
+              <column-number
+                :value="scope.row[propname]"
+                :tofixed-number="tofixed_number"
+              ></column-number>
+            </template>
+          </el-table-column>
+        </el-table-column>
+        <el-table-column label="子标题02">
+          <el-table-column
+            :prop="anotherPropname"
+            :label="anotherLabelname"
+            sortable
+            resizable
+            :min-width="anotherMincolwidth"
+          >
+            <template #default="scope">
+              <column-number
+                :value="scope.row[anotherPropname]"
+                :tofixed-number="anotherTofixed_number"
+              ></column-number>
+            </template>
+          </el-table-column>
+        </el-table-column>
+      </el-table-column>
+    </el-table>
+  </div>
+
+  <script>
+    // 定义自定义组件 <column-number>
+    const { createApp, h } = Vue;
+    const { ElTableColumn } = ElementPlus;
+
+    const ColumnNumber = {
+      props: {
+        value: Number,
+        tofixedNumber: Number,
+      },
+      render() {
+        const formattedValue = this.value === 0 || this.value === null ? '-' : (this.value * 100).toFixed(this.tofixedNumber) + '%';
+        return h('span', formattedValue);
+      },
+    };
+
+    // 创建 Vue 应用实例
+    const app = createApp({
+      data() {
+        return {
+          propname: '白班折干量45',
+          labelname: '白班折干量45',
+          mincolwidth: 60,
+          tofixed_number: 2,
+          anotherPropname: '夜班折干量45',
+          anotherLabelname: '夜班折干量45',
+          anotherMincolwidth: 60,
+          anotherTofixed_number: 2,
+          tableData: [
+            { 白班折干量45: 0.45, 夜班折干量45: 0.55 },
+            { 白班折干量45: 0.75, 夜班折干量45: 0.25 },
+            { 白班折干量45: 0, 夜班折干量45: 0.30 },
+            { 白班折干量45: null, 夜班折干量45: 0.60 },
+          ],
+        };
+      },
+      components: {
+        ColumnNumber,
+      },
+    });
+
+    // 挂载应用
+    app.use(ElementPlus).mount('#app');
+  </script>
+</body>
+</html>

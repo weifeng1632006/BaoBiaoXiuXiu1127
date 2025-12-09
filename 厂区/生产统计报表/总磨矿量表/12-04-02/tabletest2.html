@@ -1,0 +1,372 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>表格管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus/dist/index.full.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div id="app" class="container mx-auto px-4 py-8">
+        <!-- 头部导航 -->
+        <header class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex justify-between items-center">
+                <h1 class="text-3xl font-bold text-gray-800">
+                    <i class="fas fa-table mr-3 text-blue-500"></i>
+                    表格管理系统
+                </h1>
+                <div class="flex items-center space-x-4">
+                    <button @click="exportToExcel" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105">
+                        <i class="fas fa-download mr-2">
+                        导出Excel
+                    </button>
+                    <button class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-all duration-300">
+                        <i class="fas fa-cog mr-2"></i>
+                        设置
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 控制面板 -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <!-- 日期查询 -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">日期范围查询</label>
+                    <div class="flex space-x-4">
+                        <el-date-picker
+                            v-model="startDate"
+                            type="date"
+                            placeholder="选择开始日期"
+                            format="YYYY年MM月DD日"
+                            value-format="YYYY-MM-DD"
+                            class="flex-1"
+                        />
+                        <el-date-picker
+                            v-model="endDate"
+                            type="date"
+                            placeholder="选择结束日期"
+                            format="YYYY年MM月DD日"
+                            value-format="YYYY-MM-DD"
+                            class="flex-1"
+                        />
+                    </div>
+                </div>
+                
+                <!-- 搜索框 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">关键词搜索</label>
+                    <el-input
+                        v-model="searchText"
+                        placeholder="输入关键词搜索..."
+                        clearable
+                    >
+                        <template #prefix>
+                            <i class="fas fa-search"></i>
+                        </template>
+                    </el-input>
+                </div>
+                
+                <!-- 操作按钮 -->
+                <div class="flex items-end space-x-3">
+                    <button @click="searchData" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg flex-1 transition-all duration-300">
+                        <i class="fas fa-search mr-2"></i>
+                        查询
+                    </button>
+                    <button @click="resetSearch" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-3 rounded-lg transition-all duration-300">
+                        <i class="fas fa-redo mr-2"></i>
+                        重置
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 表格区域 -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800">
+                    <i class="fas fa-list-alt mr-2 text-blue-500"></i>
+                    数据表格
+                </h2>
+            </div>
+            
+            <div class="p-6">
+                <el-table
+                    :data="filteredData"
+                    style="width: 100%"
+                    :row-class-name="tableRowClassName"
+                    border
+                    stripe
+                    highlight-current-row
+                    @row-click="handleRowClick"
+                >
+                    <el-table-column type="index" label="序号" width="80" align="center" />
+                    <el-table-column prop="name" label="姓名" min-width="120" show-overflow-tooltip />
+                    <el-table-column prop="department" label="部门" min-width="150" show-overflow-tooltip />
+                    <el-table-column prop="position" label="职位" min-width="150" show-overflow-tooltip />
+                    <el-table-column prop="salary" label="薪资" width="120" align="right">
+                        <template #default="scope">
+                            ¥{{ scope.row.salary.toLocaleString() }}
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="date" label="入职日期" width="180" align="center">
+                        <template #default="scope">
+                            {{ formatChineseDate(scope.row.date) }}
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="status" label="状态" width="120" align="center">
+                        <template #default="scope">
+                            <el-tag :type="scope.row.status === '在职' ? 'success' : 'danger'">
+                                {{ scope.row.status }}
+                            </el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="操作" width="150" align="center" fixed="right">
+                        <template #default="scope">
+                            <div class="flex space-x-2">
+                                <el-button size="small" type="primary" @click="editItem(scope.row)">
+                                    <i class="fas fa-edit"></i>
+                                </el-button>
+                                <el-button size="small" type="danger" @click="deleteItem(scope.row)">
+                                    <i class="fas fa-trash"></i>
+                                </el-button>
+                            </div>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </div>
+
+            <!-- 分页 -->
+            <div class="p-4 border-t border-gray-200 bg-gray-50">
+                <el-pagination
+                    v-model:current-page="currentPage"
+                    v-model:page-size="pageSize"
+                    :page-sizes="[10, 20, 50, 100]"
+                    :total="filteredData.length"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    class="justify-center"
+                />
+            </div>
+        </div>
+
+        <!-- 统计信息 -->
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl p-6 shadow-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-blue-100">总记录数</p>
+                        <p class="text-3xl font-bold mt-2">{{ totalRecords }}</p>
+                    </div>
+                    <i class="fas fa-database text-4xl opacity-50"></i>
+                </div>
+            </div>
+            <div class="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl p-6 shadow-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-green-100">在职人数</p>
+                        <p class="text-3xl font-bold mt-2">{{ activeEmployees }}</p>
+                    </div>
+                    <i class="fas fa-users text-4xl opacity-50"></i>
+                </div>
+            </div>
+            <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl p-6 shadow-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-purple-100">平均薪资</p>
+                        <p class="text-3xl font-bold mt-2">¥{{ averageSalary }}</p>
+                    </div>
+                    <i class="fas fa-money-bill-wave text-4xl opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed } = Vue;
+        
+        createApp({
+            setup() {
+                // 响应式数据
+                const startDate = ref('');
+                const endDate = ref('');
+                const searchText = ref('');
+                const currentPage = ref(1);
+                const pageSize = ref(10);
+                
+                // 示例数据
+                const tableData = ref([
+                    { id: 1, name: '张三', department: '技术部', position: '前端工程师', salary: 15000, date: '2023-03-15', status: '在职' },
+                    { id: 2, name: '李四', department: '产品部', position: '产品经理', salary: 18000, date: '2022-11-08', status: '在职' },
+                    { id: 3, name: '王五', department: '设计部', position: 'UI设计师', salary: 12000, date: '2024-01-20', status: '在职' },
+                    { id: 4, name: '赵六', department: '运营部', position: '运营专员', salary: 10000, date: '2021-09-12', status: '离职' },
+                    { id: 5, name: '钱七', department: '技术部', position: '后端工程师', salary: 16000, date: '2023-07-25', status: '在职' },
+                    { id: 6, name: '孙八', department: '市场部', position: '市场经理', salary: 20000, date: '2020-05-30', status: '在职' },
+                    { id: 7, name: '周九', department: '人事部', position: 'HR专员', salary: 9000, date: '2023-12-01', status: '在职' },
+                    { id: 8, name: '吴十', department: '财务部', position: '会计', salary: 11000, date: '2022-08-18', status: '离职' },
+                    { id: 9, name: '郑十一', department: '技术部', position: '全栈工程师', salary: 22000, date: '2021-06-22', status: '在职' },
+                    { id: 10, name: '王十二', department: '销售部', position: '销售主管', salary: 14000, date: '2023-10-05', status: '在职' }
+                ]);
+
+                // 计算属性
+                const filteredData = computed(() => {
+                    let filtered = tableData.value;
+                    
+                    // 日期范围筛选
+                    if (startDate.value && endDate.value) {
+                        filtered = filtered.filter(item => {
+                            const itemDate = new Date(item.date);
+                            const start = new Date(startDate.value);
+                            const end = new Date(endDate.value);
+                            return itemDate >= start && itemDate <= end;
+                        });
+                    }
+                    
+                    // 关键词搜索
+                    if (searchText.value) {
+                        const search = searchText.value.toLowerCase();
+                        filtered = filtered.filter(item => 
+                            item.name.toLowerCase().includes(search) ||
+                            item.department.toLowerCase().includes(search) ||
+                            item.position.toLowerCase().includes(search)
+                        );
+                    }
+                    
+                    return filtered;
+                });
+
+                const totalRecords = computed(() => filteredData.value.length);
+                
+                const activeEmployees = computed(() => 
+                    filteredData.value.filter(item => item.status === '在职').length
+                );
+                
+                const averageSalary = computed(() => {
+                    const active = filteredData.value.filter(item => item.status === '在职');
+                    if (active.length === 0) return 0;
+                    const total = active.reduce((sum, item) => sum + item.salary, 0);
+                    return Math.round(total / active.length).toLocaleString();
+                });
+
+                // 方法
+                const formatChineseDate = (dateString) => {
+                    const date = new Date(dateString);
+                    const year = date.getFullYear();
+                    const month = date.getMonth() + 1;
+                    const day = date.getDate();
+                    return `${year}年${month}月${day}日`;
+                };
+
+                const exportToExcel = () => {
+                    try {
+                        const worksheet = XLSX.utils.json_to_sheet(filteredData.value.map(item => ({
+                            ...item,
+                            date: formatChineseDate(item.date),
+                            salary: '¥' + item.salary.toLocaleString()
+                        })));
+                        const workbook = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(workbook, worksheet, '表格数据');
+                        XLSX.writeFile(workbook, `表格数据_${new Date().toISOString().split('T')[0]}.xlsx`);
+                        
+                        ElMessage.success('数据导出成功！');
+                    } catch (error) {
+                        ElMessage.error('导出失败：' + error.message);
+                    }
+                };
+
+                const searchData = () => {
+                    ElMessage.info(`查询到 ${filteredData.value.length} 条记录`);
+                };
+
+                const resetSearch = () => {
+                    startDate.value = '';
+                    endDate.value = '';
+                    searchText.value = '';
+                    currentPage.value = 1;
+                    ElMessage.success('筛选条件已重置');
+                };
+
+                const tableRowClassName = ({ rowIndex }) => {
+                    return rowIndex % 2 === 0 ? 'even-row' : 'odd-row';
+                };
+
+                const handleRowClick = (row) => {
+                    console.log('点击行数据:', row);
+                };
+
+                const editItem = (item) => {
+                    ElMessage.info(`编辑 ${item.name} 的信息`);
+                };
+
+                const deleteItem = (item) => {
+                    ElMessageBox.confirm(
+                        `确定要删除 ${item.name} 的记录吗？`,
+                        '确认删除',
+                        {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                            type: 'warning',
+                        }
+                    ).then(() => {
+                        const index = tableData.value.findIndex(i => i.id === item.id);
+                        if (index > -1) {
+                            tableData.value.splice(index, 1);
+                            ElMessage.success('删除成功');
+                        }
+                    }).catch(() => {
+                        ElMessage.info('取消删除');
+                    });
+                };
+
+                return {
+                    startDate,
+                    endDate,
+                    searchText,
+                    currentPage,
+                    pageSize,
+                    tableData,
+                    filteredData,
+                    totalRecords,
+                    activeEmployees,
+                    averageSalary,
+                    formatChineseDate,
+                    exportToExcel,
+                    searchData,
+                    resetSearch,
+                    tableRowClassName,
+                    handleRowClick,
+                    editItem,
+                    deleteItem
+                };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+
+    <style>
+        .even-row {
+            background-color: #fafafa;
+        }
+        .odd-row {
+            background-color: #ffffff;
+        }
+        .el-table .even-row:hover > td {
+            background-color: #f0f9ff !important;
+        }
+        .el-table .odd-row:hover > td {
+            background-color: #f0f9ff !important;
+        }
+        .el-pagination {
+            justify-content: center;
+        }
+        .el-date-editor .el-input__inner {
+            text-align: center;
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<el-table-column label="4、5号球磨矿量/吨">
+    <!-- 干吨列 -->
+    <el-table-column 
+        fixed 
+        prop="白班折干量45" 
+        label="干吨" 
+        sortable 
+        class="auto-table"
+        @sort-change="handleSortChange" 
+        resizable 
+        min-width="90">
+        <template #default="scope">
+            {{ 
+                scope.row['白班折干量45'] === 0 || scope.row['白班折干量45'] === null 
+                ? '-' 
+                : scope.row['白班折干量45'].toFixed(3) 
+            }}
+        </template>
+    </el-table-column>
+
+    <!-- 品位%列 -->
+    <el-table-column 
+        fixed 
+        prop="白班含铜量45" 
+        label="品位%" 
+        sortable 
+        class="auto-table"
+        @sort-change="handleSortChange" 
+        resizable 
+        min-width="90">
+        <template #default="scope">
+            {{ 
+                scope.row['白班含铜量45'] === 0 || scope.row['白班含铜量45'] === null 
+                ? '-' 
+                : (scope.row['白班含铜量45'] * 100).toFixed(3) + '%' 
+            }}
+        </template>
+    </el-table-column>
+
+    <!-- 金属铜列 -->
+    <el-table-column 
+        fixed 
+        prop="白班金属铜45" 
+        label="金属铜" 
+        sortable 
+        class="auto-table"
+        @sort-change="handleSortChange" 
+        resizable 
+        min-width="90">
+        <template #default="scope">
+            {{ 
+                scope.row['白班金属铜45'] === 0 || scope.row['白班金属铜45'] === null 
+                ? '-' 
+                : scope.row['白班金属铜45'].toFixed(3) 
+            }}
+        </template>
+    </el-table-column>
+</el-table-column>
