@@ -43,19 +43,29 @@ const 生产系统报表 = {
         {
             type: 'file',
             id: 14,
-            label: '生产系统报表04',
+            label: '湿法分厂萃取统计表',
+            url:"https://www.yunzhijia.com/maco-platform/view/report.do?reportId=1936b912a0a14910bd32d0a058cc3181"
 
         },
         {
             type: 'file',
             id: 15,
-            label: '生产系统报表05',
+            label: '硫酸全厂库存表',
+            url:'https://www.yunzhijia.com/maco-platform/view/report.do?reportId=bdb02438f3704e4ea2cbf0c2148fde64'
 
         },
         {
             type: 'file',
             id: 16,
-            label: '生产系统报表06',
+            label: '硫酸一工段库存表',
+             url:'https://www.yunzhijia.com/maco-platform/view/report.do?reportId=cea33775bfd24dcdaeef52a62db53dc4'
+
+        },
+           {
+            type: 'file',
+            id: 16,
+            label: '硫酸二工段库存表',
+             url:'https://www.yunzhijia.com/maco-platform/view/report.do?reportId=98da5d467d0c4f49a9802c4c9ccca1b5'
 
         },
     ],
