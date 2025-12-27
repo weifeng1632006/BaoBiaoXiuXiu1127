@@ -19,11 +19,11 @@ const ksname_1 = defineComponent({
 
         },
 
-        
+
         //千分位
-      formatNumber : (value,roundint = 2,percent=1) => {
+        formatNumber: (value, roundint = 2, percent = 1) => {
             if (value === 0 || value === null) return '-';
-            return (value*percent).toLocaleString('en-US', { minimumFractionDigits: roundint });
+            return (value * percent).toLocaleString('en-US', { maximumFractionDigits: roundint });
         }
 
     },
@@ -109,11 +109,11 @@ const ksname_2 = defineComponent({
             return number2
 
         },
-            
+
         //千分位
-      formatNumber : (value,roundint = 2,percent=1) => {
+        formatNumber: (value, roundint = 2, percent = 1) => {
             if (value === 0 || value === null) return '-';
-            return (value*percent).toLocaleString('en-US', { minimumFractionDigits: roundint });
+            return (value * percent).toLocaleString('en-US', { maximumFractionDigits: roundint });
         }
 
 
@@ -186,7 +186,7 @@ createApp(
             const endDate = ref('');
             const currentTime = ref('');
             const loading = ref(true);
-       
+
 
 
             const tableData = ref([
@@ -304,7 +304,7 @@ createApp(
 
                     // console.log(`output->column.property`,column.property)
 
-                    const divpercent = (colname1, colname2,roundint=3,percent=1) => {
+                    const divpercent = (colname1, colname2, roundint = 2, percent = 1) => {
 
                         const totalCopper = data.reduce((prev, curr) => prev + Number(curr[colname1]), 0);
 
@@ -335,16 +335,27 @@ createApp(
                             } else {
                                 return prev;
                             }
-                        }, 0).toLocaleString('en-US', { minimumFractionDigits: 0 });
+                        }, 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
 
-                        if (['三期湿重', 
+                        if ([
+                            '三期湿重',
                             '一二期湿吨',
-                            '四五期湿吨', 
-                        
-                            '合计精铜湿吨', 
-                            '合计湿重', 
+                            '四五期湿吨',
+
+                            '合计精铜湿吨',
+                            '合计湿重',
                         ].includes(column.property)) {
-                            sums[index] = (sums[index]).toLocaleString('en-US', { minimumFractionDigits: 0 });
+                            sums[index] = (sums[index]).toLocaleString('en-US', { maximumFractionDigits: 0 });
+                        }
+
+                        else if (['三期湿重',
+                            '一二期湿吨',
+                            '四五期湿吨',
+
+                            '合计精铜湿吨',
+                            '合计湿重',
+                        ].includes(column.property)) {
+                            sums[index] = (sums[index]).toLocaleString('en-US', { maximumFractionDigits: 3 });
                         }
 
                         else if (column.property === '三期氧化含铜量') {
@@ -375,9 +386,10 @@ createApp(
 
                         }
 
+                        else {
 
-
-
+                            pass
+                        }
 
                     }
                     // 大if

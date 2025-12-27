@@ -210,7 +210,7 @@ createApp(
                             sums[index] = "/"
                         }
                         else {
-                            sums[index] = (totalCopper / totalDiv * number).toLocaleString('en-US', { minimumFractionDigits: roundint });
+                            sums[index] = (totalCopper / totalDiv * number).toLocaleString('en-US', { maximumFractionDigits: roundint });
                         }
 
                     }
@@ -318,7 +318,7 @@ createApp(
             //千分位
             const formatNumber = (value, roundint = 2, percent = 1) => {
                 if (value === 0 || value === null) return '-';
-                return (value * percent).toLocaleString('en-US', { minimumFractionDigits: roundint });
+                return (value * percent).toLocaleString('en-US', { maximumFractionDigits: roundint });
             }
 
 

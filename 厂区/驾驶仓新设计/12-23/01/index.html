@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>凯鹏驾驶仓 - 动态视觉版</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue@3.5.12/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="//unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            /* 渐变背景色，配合雪花效果 */
+            background: linear-gradient(135deg, #daeaf2 0%, #c1dce9 100%) !important;
+            overflow-x: hidden;
+        }
+
+        /* 动画画布样式 */
+        #animation-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none; /* 确保不影响页面点击 */
+            z-index: 9999;
+        }
+
+        #app {
+            padding: 5px;
+            position: relative;
+            z-index: 1; /* 保证内容在背景之上 */
+        }
+
+        /* 增强卡片质感 */
+        .el-card {
+            background: rgba(255, 255, 255, 0.8) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+        }
+
+        .el-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .card-title-product {
+            text-align: center;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            padding-top: 10px;
+            min-height: 90px;
+        }
+
+        .card-title-product span {
+            font-size: 25px;
+            color: #409EFF;
+            font-weight: bold;
+        }
+
+        .other-table {
+            display: flex;
+            justify-content: center;
+            border-radius: 12px;
+            align-items: center;
+            margin: 10px;
+            height: 39px;
+            background: linear-gradient(to bottom, #a9d4e3, #47c5db);
+            color: white;
+            border: none;
+        }
+
+        .product-data-3 span span {
+            color: #ee4b10;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .chdata2_gt { color: #67C23A; font-weight: bold; }
+        .chdata2_lt { color: #F56C6C; font-weight: bold; }
+        
+        hr { border: 0; border-top: 1px solid #eee; margin: 20px 0; }
+
+        /* 手动修改 */
+
+        .div-card-col-1 {
+
+            margin-bottom: 40px;
+    
+        }
+
+        .div-card-col-1 .el-card__body{
+            min-height: 140px;
+        }
+
+    </style>
+</head>
+
+<body>
+    <canvas id="animation-canvas"></canvas>
+
+    <div id="app">
+        <div class="data-row-1">
+            <el-row :gutter="20">
+                <el-col :span="9">
+                    <el-card class="card-title-product">
+                        <el-row align="middle">
+                            <el-col :span="14" style="text-align: left;">
+                                <span style="font-size: 14px; color: #666; margin-right: 10px;">日期选择</span>
+                                <el-date-picker v-model="selectdate" type="date" placeholder="选择日期"
+                                    value-format="YYYY-MM-DD" style="width: 180px;" />
+                            </el-col>
+                            <el-col :span="10" style="text-align: left;">
+                                <span>产品数据</span>
+                            </el-col>
+                        </el-row>
+                    </el-card>
+                </el-col>
+                <el-col :span="6">
+                    <el-card class="card-title-product">
+                        <span>成本数据</span>
+                    </el-card>
+                </el-col>
+                <el-col :span="9">
+                    <div class="skip-other-web">
+                        <el-row :gutter="20">
+                            <el-col :span="12">
+                                <div class="other-table">其他报表</div>
+                                <div class="other-table">其他报表</div>
+                            </el-col>
+                            <el-col :span="12">
+                                <div class="other-table">其他报表</div>
+                                <div class="other-table">其他报表</div>
+                            </el-col>
+                        </el-row>
+                    </div>
+                </el-col>
+            </el-row>
+        </div>
+
+        <el-row :gutter="20">
+            <el-col :span="9">
+                <product-card product_name="电解铜产量(吨)" 
+                    :pnumber_d="fteDataTable['电解铜产量']?.当日产量"
+                    :pnumber_m="fteDataTable['电解铜产量']?.当月数量" 
+                    :pnumber_m_jh="planData['电解铜产量']?.['明细_月度指标量']"
+                    :pnumber_y="fteDataTable['电解铜产量']?.本年累计产量" 
+                    :pnumber_y_jh="planData['电解铜产量']?.['明细_年度指标量']"
+                    :inumber="fteDataTable['电解铜进销存']?.累计库存2"
+                    :pronames="['日产量','月累积','年累计','库存']" :isload="loading"></product-card>
+
+                <product-card product_name="硫酸产量(吨)"
+                    :pnumber_d="(fteDataTable['硫酸一产量']?.当日产量 || 0) + (fteDataTable['硫酸二产量']?.当日产量 || 0)"
+                    :pnumber_m="(fteDataTable['硫酸一产量']?.当月数量 || 0) + (fteDataTable['硫酸二产量']?.当月数量 || 0)"
+                    :pnumber_m_jh="planData['硫酸产量']?.['明细_月度指标量']" 
+                    :pnumber_y="(fteDataTable['硫酸一产量']?.本年累计产量 || 0) + (fteDataTable['硫酸二产量']?.本年累计产量 || 0)"
+                    :pnumber_y_jh="planData['硫酸产量']?.['明细_年度指标量']"
+                    :inumber="fteDataTable['硫酸总库存']?.硫酸全厂当日库存"
+                    intround="2"
+                    :isload="loading"
+                    :pronames="['日产量','月累积','年累计','库存']"></product-card>
+
+                <product-card product_name="光伏发电(kwh)" 
+                    :pnumber_d="fteDataTable['光伏发电']?.光伏供电合计"
+                    :pnumber_m="fteDataTable['光伏发电']?.光伏供电月累计" 
+                    :pnumber_m_jh="planData['光伏发电']?.['明细_月度指标量']"
+                    :pnumber_y="fteDataTable['光伏发电']?.光伏供电年累计" 
+                    :pnumber_y_jh="planData['光伏发电']?.['明细_年度指标量']"
+                    inumber="0" intround="0"
+                    :isload="loading"
+                    :pronames="['日发电','月累积','年累积','-']"></product-card>
+            </el-col>
+
+            <el-col :span="6">
+                <el-card style="min-height: 760px;">
+                    <chenben-data titlename_1="当月电解铜成本" :cbdata_1="fteDataTable['电解铜产量']?.当月单位成本"
+                        titlename_2="上月电解铜成本" :cbdata_2="fteDataTable['电解铜产量']?.上月单位成本"
+                        intround="3"></chenben-data>
+
+                    <chenben-data titlename_1="年度电解铜成本" :cbdata_1="fteDataTable['电解铜产量']?.本年单位成本"
+                        titlename_2="月度环比±%" :cbdata_2="fteDataTable['电解铜产量']?.上月单位成本对比"
+                        baifen="true" intround="3"></chenben-data>
+                    <hr />
+                    <chenben-data titlename_1="当月硫酸成本" 
+                        :cbdata_1="((fteDataTable['硫酸一产量']?.当月单位成本 || 0) + (fteDataTable['硫酸二产量']?.当月单位成本 || 0))/2"
+                        titlename_2="上月硫酸成本" 
+                        :cbdata_2="((fteDataTable['硫酸一产量']?.上月单位成本 || 0) + (fteDataTable['硫酸二产量']?.上月单位成本 || 0))/2"
+                        intround="3"></chenben-data>
+
+                    <chenben-data titlename_1="年度硫酸成本" 
+                        :cbdata_1="((fteDataTable['硫酸一产量']?.本年单位成本 || 0) + (fteDataTable['硫酸二产量']?.本年单位成本 || 0))/2"
+                        titlename_2="月度环比±%" 
+                        :cbdata_2="((fteDataTable['硫酸一产量']?.上月单位成本对比 || 0) + (fteDataTable['硫酸二产量']?.上月单位成本对比 || 0))/2"
+                        baifen="true" intround="3"></chenben-data>
+                </el-card>
+            </el-col>
+
+            <el-col :span="9">
+                <el-card style="margin-bottom: 20px;">
+                    <div ref="barChart" style="width: 100%; height: 350px;"></div>
+                </el-card>
+                <el-card>
+                    <div ref="pieChart" style="width: 100%; height: 350px;"></div>
+                </el-card>
+            </el-col>
+        </el-row>
+    </div>
+
+    <script src="./index.js"></script>
+</body>
+</html>

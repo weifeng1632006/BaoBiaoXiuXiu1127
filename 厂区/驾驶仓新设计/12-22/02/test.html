@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>凯鹏驾驶仓 - 科技视觉版</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue@3.5.12/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="//unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+
+    <style>
+        :root {
+            --primary-blue: #409EFF;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-main: #e0e6ed;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'PingFang SC', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            /* 科技感深蓝色渐变 */
+            background: radial-gradient(circle at center, #1e3c72 0%, #112344 100%) !important;
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        #animation-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        #app {
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 磨砂玻璃卡片核心样式 */
+        .el-card {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border) !important;
+            border-radius: 16px !important;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+            margin-bottom: 20px;
+        }
+
+        .el-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4) !important;
+            border-color: rgba(64, 158, 255, 0.5) !important;
+        }
+
+        /* 标题增强 */
+        .card-title-product {
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-title-product span {
+            font-size: 24px;
+            background: linear-gradient(180deg, #fff 30%, #a5c7ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+        }
+
+        /* 按钮与交互 */
+        .other-table {
+            display: flex;
+            justify-content: center;
+            border-radius: 10px;
+            align-items: center;
+            margin: 5px;
+            height: 45px;
+            background: rgba(64, 158, 255, 0.15);
+            border: 1px solid rgba(64, 158, 255, 0.3);
+            color: #fff;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+
+        .other-table:hover {
+            background: var(--primary-blue);
+            box-shadow: 0 0 15px rgba(64, 158, 255, 0.5);
+        }
+
+        /* 动画序列 */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in-node {
+            animation: fadeInUp 0.7s ease-out both;
+        }
+
+        hr { border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0; }
+        
+        /* 修正 Element Plus 默认文字颜色 */
+        .el-form-item__label, .el-input__inner { color: #fff !important; }
+        .el-date-editor.el-input { --el-input-bg-color: rgba(255,255,255,0.1); }
+    </style>
+</head>
+
+<body>
+    <canvas id="animation-canvas"></canvas>
+
+    <div id="app">
+        <el-row :gutter="20" class="fade-in-node" style="animation-delay: 0.1s;">
+            <el-col :span="9">
+                <el-card class="card-title-product">
+                    <el-row align="middle" style="width: 100%;">
+                        <el-col :span="14" style="text-align: left;">
+                            <span style="font-size: 14px; -webkit-text-fill-color: #ccc; margin-right: 10px;">业务日期</span>
+                            <el-date-picker v-model="selectdate" type="date" value-format="YYYY-MM-DD" style="width: 160px;" />
+                        </el-col>
+                        <el-col :span="10"><span>生产看板</span></el-col>
+                    </el-row>
+                </el-card>
+            </el-col>
+            <el-col :span="6">
+                <el-card class="card-title-product"><span>成本管控</span></el-card>
+            </el-col>
+            <el-col :span="9">
+                <el-row :gutter="10">
+                    <el-col :span="12" v-for="i in 4" :key="i">
+                        <div class="other-table">数据报表 {{i}}</div>
+                    </el-col>
+                </el-row>
+            </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+            <el-col :span="9" class="fade-in-node" style="animation-delay: 0.3s;">
+                <product-card product_name="电解铜产量(吨)" 
+                    :pnumber_d="fteDataTable['电解铜产量']?.当日产量"
+                    :pnumber_m="fteDataTable['电解铜产量']?.当月数量" 
+                    :pnumber_m_jh="planData['电解铜产量']?.['明细_月度指标量']"
+                    :pnumber_y="fteDataTable['电解铜产量']?.本年累计产量" 
+                    :pnumber_y_jh="planData['电解铜产量']?.['明细_年度指标量']"
+                    :inumber="fteDataTable['电解铜进销存']?.累计库存2"
+                    :pronames="['当日','月累','年累','库存']"></product-card>
+
+                <product-card product_name="硫酸产量(吨)"
+                    :pnumber_d="(fteDataTable['硫酸一产量']?.当日产量 || 0) + (fteDataTable['硫酸二产量']?.当日产量 || 0)"
+                    :pnumber_m="(fteDataTable['硫酸一产量']?.当月数量 || 0) + (fteDataTable['硫酸二产量']?.当月数量 || 0)"
+                    :pnumber_m_jh="planData['硫酸产量']?.['明细_月度指标量']" 
+                    :pnumber_y="(fteDataTable['硫酸一产量']?.本年累计产量 || 0) + (fteDataTable['硫酸二产量']?.本年累计产量 || 0)"
+                    :pnumber_y_jh="planData['硫酸产量']?.['明细_年度指标量']"
+                    :inumber="fteDataTable['硫酸总库存']?.硫酸全厂当日库存"
+                    intround="2"
+                    :pronames="['当日','月累','年累','库存']"></product-card>
+            </el-col>
+
+            <el-col :span="6" class="fade-in-node" style="animation-delay: 0.5s;">
+                <el-card style="min-height: 500px;">
+                    <chenben-data titlename_1="当月电解铜成本" :cbdata_1="fteDataTable['电解铜产量']?.当月单位成本"
+                        titlename_2="环比对比" :cbdata_2="fteDataTable['电解铜产量']?.上月单位成本对比"
+                        baifen="true" intround="3"></chenben-data>
+                    <hr />
+                    <chenben-data titlename_1="当月硫酸成本" 
+                        :cbdata_1="((fteDataTable['硫酸一产量']?.当月单位成本 || 0) + (fteDataTable['硫酸二产量']?.当月单位成本 || 0))/2"
+                        titlename_2="环比对比" 
+                        :cbdata_2="((fteDataTable['硫酸一产量']?.上月单位成本对比 || 0) + (fteDataTable['硫酸二产量']?.上月单位成本对比 || 0))/2"
+                        baifen="true" intround="3"></chenben-data>
+                </el-card>
+            </el-col>
+
+            <el-col :span="9" class="fade-in-node" style="animation-delay: 0.7s;">
+                <el-card><div ref="barChart" style="width: 100%; height: 260px;"></div></el-card>
+                <el-card><div ref="pieChart" style="width: 100%; height: 260px;"></div></el-card>
+            </el-col>
+        </el-row>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted, reactive, computed, defineComponent, watch } = Vue;
+
+        // 组件：产品数据卡片
+        const productCard = defineComponent({
+            props: ["product_name", "pnumber_d", "pnumber_m", "pnumber_m_jh", "pnumber_y", "pnumber_y_jh", "inumber", "intround", "pronames"],
+            methods: {
+                formatNumber(v, r = 2) { 
+                    return (v === 0 || !v) ? '0' : parseFloat(v).toLocaleString('en-US', {maximumFractionDigits: r}); 
+                },
+                calcRate(v1, v2) {
+                    if(!v2) return 0;
+                    return ((v1 / v2) * 100).toFixed(0);
+                }
+            },
+            template: `
+                <el-card class="product-item-card">
+                    <div style="color: #409EFF; font-weight: bold; margin-bottom: 15px; font-size: 18px; border-left: 4px solid #409EFF; padding-left: 10px;">
+                        {{product_name}}
+                    </div>
+                    <el-row :gutter="10">
+                        <el-col :span="6" v-for="(label, index) in pronames" :key="index" style="text-align: center;">
+                            <div style="font-size: 18px; font-weight: bold; color: #fff;">
+                                {{ index === 0 ? formatNumber(pnumber_d, intround) : 
+                                   index === 1 ? formatNumber(pnumber_m, intround) :
+                                   index === 2 ? formatNumber(pnumber_y, intround) : formatNumber(inumber, intround) }}
+                            </div>
+                            <div style="font-size: 12px; color: #999; margin-top: 4px;">{{label}}</div>
+                            <div v-if="index === 1 || index === 2" style="margin-top: 8px;">
+                                <div style="font-size: 11px; color: #e6a23c;">达成 {{ index === 1 ? calcRate(pnumber_m, pnumber_m_jh) : calcRate(pnumber_y, pnumber_y_jh) }}%</div>
+                            </div>
+                        </el-col>
+                    </el-row>
+                </el-card>`
+        });
+
+        // 组件：成本数据展示
+        const chenbenData = defineComponent({
+            props: ["titlename_1", "cbdata_1", "titlename_2", "cbdata_2", "intround", "baifen"],
+            template: `
+                <div style="padding: 10px 0; text-align: center;">
+                    <el-row>
+                        <el-col :span="12">
+                            <div style="color: #409EFF; font-size: 22px; font-weight: bold;">{{ cbdata_1?.toFixed(intround) || '-' }}</div>
+                            <div style="font-size: 12px; color: #ccc;">{{ titlename_1 }}</div>
+                        </el-col>
+                        <el-col :span="12">
+                            <div :style="{color: cbdata_2 >= 0 ? '#f56c6c' : '#67c23a', fontSize: '22px', fontWeight: 'bold'}">
+                                {{ cbdata_2 > 0 ? '+' : '' }}{{ (cbdata_2 * 100).toFixed(2) }}%
+                            </div>
+                            <div style="font-size: 12px; color: #ccc;">{{ titlename_2 }}</div>
+                        </el-col>
+                    </el-row>
+                </div>`
+        });
+
+        createApp({
+            components: { "product-card": productCard, "chenben-data": chenbenData },
+            setup() {
+                const selectdate = ref("");
+                const barChart = ref(null);
+                const pieChart = ref(null);
+                let myBarChart, myPieChart;
+
+                const sourceData = reactive({ "计划指标": [], "电解铜产量": [], "硫酸一产量": [], "硫酸二产量": [], "电解铜进销存": [], "硫酸总库存": [] });
+                const planData = reactive({ "电解铜产量": [], "硫酸产量": [] });
+
+                const base_urls = "https://weifeng.ckfgs.cn/";
+
+                const fetchData = async (key, api) => {
+                    try {
+                        const res = await axios.get(base_urls + api);
+                        sourceData[key] = res.data;
+                    } catch (e) { console.error(e); }
+                };
+
+                const fteDataTable = computed(() => {
+                    const res = {};
+                    Object.keys(sourceData).forEach(k => {
+                        res[k] = (sourceData[k] || []).find(i => i.格式日期 === selectdate.value) || {};
+                    });
+                    return res;
+                });
+
+                // 粒子背景引擎
+                const initParticles = () => {
+                    const canvas = document.getElementById('animation-canvas');
+                    const ctx = canvas.getContext('2d');
+                    let w, h, pts = [];
+                    const resize = () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; };
+                    window.onresize = resize; resize();
+
+                    class Pt {
+                        constructor() { this.reset(); }
+                        reset() {
+                            this.x = Math.random() * w; this.y = Math.random() * h;
+                            this.vx = (Math.random() - 0.5) * 0.4; this.vy = (Math.random() - 0.5) * 0.4;
+                        }
+                        update() {
+                            this.x += this.vx; this.y += this.vy;
+                            if(this.x<0||this.x>w||this.y<0||this.y>h) this.reset();
+                        }
+                    }
+                    for(let i=0; i<60; i++) pts.push(new Pt());
+
+                    const draw = () => {
+                        ctx.clearRect(0,0,w,h);
+                        pts.forEach(p => {
+                            p.update();
+                            ctx.fillStyle = "rgba(255,255,255,0.2)";
+                            ctx.beginPath(); ctx.arc(p.x, p.y, 1.5, 0, Math.PI*2); ctx.fill();
+                        });
+                        // 连线
+                        for(let i=0; i<pts.length; i++) {
+                            for(let j=i+1; j<pts.length; j++) {
+                                let d = Math.hypot(pts[i].x-pts[j].x, pts[i].y-pts[j].y);
+                                if(d < 150) {
+                                    ctx.strokeStyle = `rgba(64,158,255,${1 - d/150})`;
+                                    ctx.lineWidth = 0.5;
+                                    ctx.beginPath(); ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(pts[j].x, pts[j].y); ctx.stroke();
+                                }
+                            }
+                        }
+                        requestAnimationFrame(draw);
+                    };
+                    draw();
+                };
+
+                onMounted(async () => {
+                    initParticles();
+                    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+                    selectdate.value = yesterday.toISOString().split('T')[0];
+
+                    await Promise.all([
+                        fetchData("计划指标", "factdata/pct/jihau_zhibiao"),
+                        fetchData("电解铜产量", "factdata/pct/tong"),
+                        fetchData("硫酸一产量", "factdata/pct/ls1"),
+                        fetchData("硫酸二产量", "factdata/pct/ls2"),
+                        fetchData("电解铜进销存", "factdata/pct/dianjie_jinxiao"),
+                        fetchData("硫酸总库存", "factdata/scbb/jinxiao_lsall")
+                    ]);
+
+                    // 初始化图表
+                    myBarChart = echarts.init(barChart.value, 'dark');
+                    myBarChart.setOption({
+                        backgroundColor: 'transparent',
+                        title: { text: '日产量实时监控', left: 'center' },
+                        xAxis: { type: 'category', data: ['电解铜', '硫酸'], axisLine: {lineStyle: {color: '#666'}} },
+                        yAxis: { type: 'value', splitLine: {lineStyle:{color:'rgba(255,255,255,0.1)'}} },
+                        series: [{ 
+                            type: 'bar', 
+                            data: [120, 450], 
+                            barWidth: '40%',
+                            itemStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1, [{offset:0, color:'#409EFF'}, {offset:1, color:'#112344'}]) }
+                        }]
+                    });
+
+                    myPieChart = echarts.init(pieChart.value, 'dark');
+                    myPieChart.setOption({
+                        backgroundColor: 'transparent',
+                        title: { text: '当前库存占比', left: 'center' },
+                        series: [{ type: 'pie', radius: ['40%', '70%'], data: [{value: 30, name: '铜'}, {value: 70, name: '酸'}], itemStyle: {borderRadius: 8} }]
+                    });
+                });
+
+                return { selectdate, barChart, pieChart, fteDataTable, planData };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

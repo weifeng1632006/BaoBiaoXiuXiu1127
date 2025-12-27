@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>凯鹏驾驶仓设计</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- Use Vue 3 -->
+    <script src="https://unpkg.com/vue@3.5.12/dist/vue.global.js"></script>
+
+    <link rel="stylesheet" href="//unpkg.com/element-plus/dist/index.css" />
+
+    <!-- 引入Element Plus JS -->
+    <script src="https://unpkg.com/element-plus"></script>
+    <!-- 引入Element Plus图标 -->
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+
+    <!-- 引用 echarts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <!-- 引入 Element Plus 图标 -->
+    <link rel="stylesheet" href="https://unpkg.com/@element-plus/icons-vue/dist/index.css">
+    <script src="//unpkg.com/@element-plus/icons-vue"></script>
+    </link>
+
+    <style>
+        /* 现代极简主义设计系统 - 基于HSL的CSS变量 */
+        :root {
+            /* 基础色彩系统 */
+            --background: 210 40% 98%;
+            --foreground: 222 84% 5%;
+            --card: 0 0% 100%;
+            --card-foreground: 222 84% 5%;
+            --primary: 210 100% 60%;
+            --primary-foreground: 0 0% 100%;
+            --secondary: 210 40% 96%;
+            --secondary-foreground: 222 47% 11%;
+            --accent: 210 40% 94%;
+            --accent-foreground: 222 47% 11%;
+            --muted: 210 40% 96%;
+            --muted-foreground: 215 16% 47%;
+            --border: 214 32% 91%;
+            --input: 214 32% 91%;
+            --ring: 210 100% 60%;
+            
+            /* 渐变色彩 */
+            --gradient-primary: linear-gradient(135deg, hsl(210 100% 60%), hsl(210 100% 70%));
+            --gradient-secondary: linear-gradient(135deg, hsl(210 40% 96%), hsl(210 40% 92%));
+            --gradient-accent: linear-gradient(135deg, hsl(160 60% 50%), hsl(190 70% 60%));
+            --gradient-warm: linear-gradient(135deg, hsl(25 95% 60%), hsl(45 95% 65%));
+            
+            /* 阴影系统 */
+            --shadow-sm: 0 1px 2px 0 hsl(222 84% 5% / 0.05);
+            --shadow-md: 0 4px 6px -1px hsl(222 84% 5% / 0.1), 0 2px 4px -2px hsl(222 84% 5% / 0.1);
+            --shadow-lg: 0 10px 15px -3px hsl(222 84% 5% / 0.1), 0 4px 6px -4px hsl(222 84% 5% / 0.1);
+            --shadow-xl: 0 20px 25px -5px hsl(222 84% 5% / 0.1), 0 8px 10px -6px hsl(222 84% 5% / 0.1);
+            --shadow-glow: 0 0 20px hsl(210 100% 60% / 0.3);
+            
+            /* 动画曲线 */
+            --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-normal: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 暗色主题 */
+        [data-theme="dark"] {
+            --background: 222 84% 5%;
+            --foreground: 210 40% 98%;
+            --card: 222 47% 11%;
+            --card-foreground: 210 40% 98%;
+            --primary: 210 100% 70%;
+            --primary-foreground: 222 84% 5%;
+            --secondary: 222 47% 16%;
+            --secondary-foreground: 210 40% 98%;
+            --accent: 222 47% 20%;
+            --accent-foreground: 210 40% 98%;
+            --muted: 222 47% 16%;
+            --muted-foreground: 215 20% 65%;
+            --border: 217 33% 18%;
+            --input: 217 33% 18%;
+            --ring: 210 100% 70%;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: hsl(var(--background));
+            color: hsl(var(--foreground));
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        #app {
+            min-height: 100vh;
+            background: linear-gradient(135deg, hsl(210 40% 98%), hsl(210 40% 95%));
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 动态背景装饰 */
+        #app::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, hsl(210 100% 60% / 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, hsl(190 70% 60% / 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, hsl(160 60% 50% / 0.05) 0%, transparent 50%);
+            z-index: -1;
+            animation: backgroundFloat 20s ease-in-out infinite;
+        }
+
+        @keyframes backgroundFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(-20px, -20px) scale(1.05); }
+            66% { transform: translate(20px, -10px) scale(0.95); }
+        }
+
+        /* 响应式网格系统 */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.5rem;
+            }
+        }
+
+        /* 卡片基础样式 */
+        .card {
+            background: hsl(var(--card));
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid hsl(var(--border));
+            transition: var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-xl);
+            transform: translateY(-2px);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .card:hover::before {
+            left: 100%;
+        }
+
+        /* 标题样式 */
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: var(--gradient-primary);
+            border-radius: 2px;
+            animation: titleUnderline 2s ease-in-out infinite;
+        }
+
+        @keyframes titleUnderline {
+            0%, 100% { width: 60px; }
+            50% { width: 100px; }
+        }
+
+        /* 数据卡片样式 */
+        .data-card {
+            background: hsl(var(--card));
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid hsl(var(--border));
+            transition: var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .data-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-1px);
+        }
+
+        .data-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--gradient-primary);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .data-card:hover::after {
+            opacity: 1;
+        }
+
+        /* 图表容器 */
+        .chart-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+
+        .chart-box {
+            background: hsl(var(--card));
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid hsl(var(--border));
+            overflow: hidden;
+            transition: var(--transition-normal);
+        }
+
+        .chart-box:hover {
+            box-shadow: var(--shadow-xl);
+            transform: translateY(-2px);
+        }
+
+        /* 响应式布局 */
+        .responsive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .responsive-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .responsive-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 按钮样式 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition-normal);
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: hsl(var(--primary-foreground));
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:hover {
+            box-shadow: var(--shadow-lg), var(--shadow-glow);
+            transform: translateY(-1px);
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid hsl(var(--border));
+            border-top: 2px solid hsl(var(--primary));
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 脉冲动画 */
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+
+        /* 数字动画 */
+        .number-animate {
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.25rem;
+        }
+
+        /* 状态指示器 */
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        .status-success {
+            background-color: hsl(142 76% 36%);
+            box-shadow: 0 0 10px hsl(142 76% 36% / 0.5);
+        }
+
+        .status-warning {
+            background-color: hsl(45 100% 51%);
+            box-shadow: 0 0 10px hsl(45 100% 51% / 0.5);
+        }
+
+        .status-error {
+            background-color: hsl(0 84% 60%);
+            box-shadow: 0 0 10px hsl(0 84% 60% / 0.5);
+        }
+
+        .status-info {
+            background-color: hsl(210 100% 60%);
+            box-shadow: 0 0 10px hsl(210 100% 60% / 0.5);
+        }
+
+        /* 响应式导航 */
+        .nav-header {
+            background: hsl(var(--card) / 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid hsl(var(--border));
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .nav-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        /* 主内容区域 */
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        /* 统计卡片网格 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: hsl(var(--card));
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid hsl(var(--border));
+            transition: var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-change {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .stat-change.positive {
+            background: hsl(142 76% 36% / 0.1);
+            color: hsl(142 76% 36%);
+        }
+
+        .stat-change.negative {
+            background: hsl(0 84% 60% / 0.1);
+            color: hsl(0 84% 60%);
+        }
+
+        /* 表格样式 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: hsl(var(--card));
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            border: 1px solid hsl(var(--border));
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid hsl(var(--border));
+        }
+
+        .data-table th {
+            background: hsl(var(--secondary));
+            font-weight: 600;
+            color: hsl(var(--secondary-foreground));
+        }
+
+        .data-table tr:hover {
+            background: hsl(var(--accent));
+        }
+
+        /* 模态框样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: hsl(222 84% 5% / 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: hsl(var(--card));
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid hsl(var(--border));
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: hsl(var(--muted-foreground));
+            transition: var(--transition-normal);
+        }
+
+        .modal-close:hover {
+            color: hsl(var(--foreground));
+        }
+
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: hsl(var(--foreground));
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid hsl(var(--border));
+            border-radius: 8px;
+            background: hsl(var(--background));
+            color: hsl(var(--foreground));
+            transition: var(--transition-normal);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: hsl(var(--ring));
+            box-shadow: 0 0 0 3px hsl(var(--ring) / 0.1);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .nav-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                margin: 1rem;
+                width: calc(100% - 2rem);
+            }
+        }
+
+        /* 加载状态 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: hsl(var(--background) / 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+
+        .loading-content {
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid hsl(var(--border));
+            border-top: 3px solid hsl(var(--primary));
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        .loading-text {
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+        }
+
+        /* 动画效果 */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 工具提示 */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: hsl(var(--foreground));
+            color: hsl(var(--background));
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.75rem;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!-- 加载状态 -->
+        <div v-if="loading" class="loading-overlay">
+            <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">数据加载中...</div>
+            </div>
+        </div>
+
+        <!-- 导航头部 -->
+        <header class="nav-header">
+            <div class="nav-content">
+                <div class="nav-title">凯鹏驾驶仓</div>
+                <div class="nav-actions">
+                    <el-button type="primary" @click="refreshData" :loading="loading">
+                        <el-icon><Refresh /></el-icon>
+                        刷新数据
+                    </el-button>
+                    <el-button @click="exportData">
+                        <el-icon><Download /></el-icon>
+                        导出报表
+                    </el-button>
+                    <el-button @click="showSettings = true">
+                        <el-icon><Setting /></el-icon>
+                        设置
+                    </el-button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主内容区域 -->
+        <main class="main-content">
+            <div class="container">
+                <!-- 统计卡片 -->
+                <div class="stats-grid fade-in">
+                    <div class="stat-card" v-for="stat in statistics" :key="stat.key">
+                        <div class="stat-value number-animate">{{ formatNumber(stat.value) }}</div>
+                        <div class="stat-label">{{ stat.label }}</div>
+                        <div class="stat-change" :class="stat.change > 0 ? 'positive' : 'negative'">
+                            <el-icon><Top v-if="stat.change > 0" /><Bottom v-else /></el-icon>
+                            {{ Math.abs(stat.change) }}%
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 图表区域 -->
+                <div class="chart-container fade-in">
+                    <!-- 销售趋势图 -->
+                    <div class="chart-box">
+                        <div class="card-body">
+                            <h3 class="section-title">销售趋势</h3>
+                            <div ref="salesChart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- 产品分布图 -->
+                    <div class="chart-box">
+                        <div class="card-body">
+                            <h3 class="section-title">产品分布</h3>
+                            <div ref="productChart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- 区域热力图 -->
+                    <div class="chart-box">
+                        <div class="card-body">
+                            <h3 class="section-title">区域热力</h3>
+                            <div ref="regionChart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- 客户满意度 -->
+                    <div class="chart-box">
+                        <div class="card-body">
+                            <h3 class="section-title">客户满意度</h3>
+                            <div ref="satisfactionChart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 数据表格 -->
+                <div class="data-card fade-in">
+                    <h3 class="section-title">最新订单</h3>
+                    <el-table :data="tableData" style="width: 100%" v-loading="tableLoading">
+                        <el-table-column prop="orderNo" label="订单号" width="180">
+                            <template #default="scope">
+                                <span class="number-animate">{{ scope.row.orderNo }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="customer" label="客户" width="120"></el-table-column>
+                        <el-table-column prop="product" label="产品" width="150"></el-table-column>
+                        <el-table-column prop="amount" label="金额" width="100">
+                            <template #default="scope">
+                                ¥{{ formatNumber(scope.row.amount) }}
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="status" label="状态" width="100">
+                            <template #default="scope">
+                                <el-tag :type="getStatusType(scope.row.status)">
+                                    <span class="status-indicator" :class="'status-' + scope.row.status"></span>
+                                    {{ scope.row.status }}
+                                </el-tag>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="date" label="日期" width="120"></el-table-column>
+                        <el-table-column label="操作" width="150">
+                            <template #default="scope">
+                                <el-button size="small" @click="viewOrder(scope.row)">查看</el-button>
+                                <el-button size="small" type="primary" @click="processOrder(scope.row)">处理</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+            </div>
+        </main>
+
+        <!-- 设置模态框 -->
+        <div v-if="showSettings" class="modal-overlay" @click="showSettings = false">
+            <div class="modal-content" @click.stop>
+                <div class="modal-header">
+                    <h3 class="modal-title">系统设置</h3>
+                    <button class="modal-close" @click="showSettings = false">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">主题模式</label>
+                        <el-select v-model="settings.theme" @change="changeTheme">
+                            <el-option label="浅色" value="light"></el-option>
+                            <el-option label="深色" value="dark"></el-option>
+                            <el-option label="自动" value="auto"></el-option>
+                        </el-select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">数据刷新间隔（秒）</label>
+                        <el-input-number v-model="settings.refreshInterval" :min="10" :max="300"></el-input-number>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">显示动画</label>
+                        <el-switch v-model="settings.enableAnimation"></el-switch>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <el-button @click="showSettings = false">取消</el-button>
+                    <el-button type="primary" @click="saveSettings">保存</el-button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        const { ElMessage, ElMessageBox } = ElementPlus;
+
+        createApp({
+            data() {
+                return {
+                    loading: false,
+                    tableLoading: false,
+                    showSettings: false,
+                    settings: {
+                        theme: 'light',
+                        refreshInterval: 30,
+                        enableAnimation: true
+                    },
+                    statistics: [
+                        { key: 'sales', label: '今日销售额', value: 128456, change: 12.5 },
+                        { key: 'orders', label: '今日订单数', value: 342, change: 8.3 },
+                        { key: 'customers', label: '新增客户', value: 56, change: -2.1 },
+                        { key: 'conversion', label: '转化率', value: 3.2, change: 5.7 }
+                    ],
+                    tableData: [],
+                    charts: {
+                        sales: null,
+                        product: null,
+                        region: null,
+                        satisfaction: null
+                    }
+                }
+            },
+            mounted() {
+                this.initCharts();
+                this.loadData();
+                this.startAutoRefresh();
+            },
+            beforeUnmount() {
+                this.stopAutoRefresh();
+                this.disposeCharts();
+            },
+            methods: {
+                async loadData() {
+                    this.loading = true;
+                    try {
+                        // 模拟数据加载
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        
+                        // 生成模拟表格数据
+                        this.tableData = this.generateTableData();
+                        
+                        // 更新图表数据
+                        this.updateCharts();
+                        
+                        ElMessage.success('数据加载成功');
+                    } catch (error) {
+                        ElMessage.error('数据加载失败');
+                        console.error('数据加载错误:', error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                generateTableData() {
+                    const statuses = ['success', 'warning', 'info', 'error'];
+                    const statusLabels = { success: '已完成', warning: '处理中', info: '待确认', error: '已取消' };
+                    const products = ['产品A', '产品B', '产品C', '产品D', '产品E'];
+                    const customers = ['张三', '李四', '王五', '赵六', '钱七'];
+                    
+                    return Array.from({ length: 10 }, (_, i) => {
+                        const status = statuses[Math.floor(Math.random() * statuses.length)];
+                        return {
+                            orderNo: `ORD${String(Date.now() + i).slice(-6)}`,
+                            customer: customers[Math.floor(Math.random() * customers.length)],
+                            product: products[Math.floor(Math.random() * products.length)],
+                            amount: Math.floor(Math.random() * 10000) + 1000,
+                            status: statusLabels[status],
+                            date: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toLocaleDateString()
+                        };
+                    });
+                },
+
+                initCharts() {
+                    // 销售趋势图
+                    this.charts.sales = echarts.init(this.$refs.salesChart);
+                    const salesOption = {
+                        tooltip: {
+                            trigger: 'axis',
+                            backgroundColor: 'hsl(var(--card))',
+                            borderColor: 'hsl(var(--border))',
+                            textStyle: { color: 'hsl(var(--foreground))' }
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月'],
+                            axisLine: { lineStyle: { color: 'hsl(var(--border))' } },
+                            axisLabel: { color: 'hsl(var(--muted-foreground))' }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            axisLine: { lineStyle: { color: 'hsl(var(--border))' } },
+                            axisLabel: { color: 'hsl(var(--muted-foreground))' }
+                        },
+                        series: [{
+                            data: [820, 932, 901, 934, 1290, 1330, 1320],
+                            type: 'line',
+                            smooth: true,
+                            lineStyle: { color: 'hsl(var(--primary))', width: 3 },
+                            itemStyle: { color: 'hsl(var(--primary))' },
+                            areaStyle: {
+                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                    { offset: 0, color: 'hsl(var(--primary) / 0.3)' },
+                                    { offset: 1, color: 'hsl(var(--primary) / 0.1)' }
+                                ])
+                            }
+                        }],
+                        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true }
+                    };
+                    this.charts.sales.setOption(salesOption);
+
+                    // 产品分布图
+                    this.charts.product = echarts.init(this.$refs.productChart);
+                    const productOption = {
+                        tooltip: {
+                            trigger: 'item',
+                            backgroundColor: 'hsl(var(--card))',
+                            borderColor: 'hsl(var(--border))',
+                            textStyle: { color: 'hsl(var(--foreground))' }
+                        },
+                        series: [{
+                            type: 'pie',
+                            radius: ['40%', '70%'],
+                            avoidLabelOverlap: false,
+                            itemStyle: {
+                                borderRadius: 10,
+                                borderColor: 'hsl(var(--card))',
+                                borderWidth: 2
+                            },
+                            label: {
+                                show: false,
+                                position: 'center'
+                            },
+                            emphasis: {
+                                label: {
+                                    show: true,
+                                    fontSize: '20',
+                                    fontWeight: 'bold',
+                                    color: 'hsl(var(--foreground))'
+                                }
+                            },
+                            labelLine: { show: false },
+                            data: [
+                                { value: 1048, name: '产品A', itemStyle: { color: 'hsl(210 100% 60%)' } },
+                                { value: 735, name: '产品B', itemStyle: { color: 'hsl(160 60% 50%)' } },
+                                { value: 580, name: '产品C', itemStyle: { color: 'hsl(25 95% 60%)' } },
+                                { value: 484, name: '产品D', itemStyle: { color: 'hsl(280 60% 70%)' } },
+                                { value: 300, name: '产品E', itemStyle: { color: 'hsl(320 80% 60%)' } }
+                            ]
+                        }]
+                    };
+                    this.charts.product.setOption(productOption);
+
+                    // 区域热力图
+                    this.charts.region = echarts.init(this.$refs.regionChart);
+                    const regionOption = {
+                        tooltip: {
+                            trigger: 'axis',
+                            backgroundColor: 'hsl(var(--card))',
+                            borderColor: 'hsl(var(--border))',
+                            textStyle: { color: 'hsl(var(--foreground))' }
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: ['华北', '华东', '华南', '华中', '西南', '西北', '东北'],
+                            axisLine: { lineStyle: { color: 'hsl(var(--border))' } },
+                            axisLabel: { color: 'hsl(var(--muted-foreground))' }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            axisLine: { lineStyle: { color: 'hsl(var(--border))' } },
+                            axisLabel: { color: 'hsl(var(--muted-foreground))' }
+                        },
+                        series: [{
+                            data: [120, 200, 150, 80, 70, 110, 130],
+                            type: 'bar',
+                            itemStyle: {
+                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                    { offset: 0, color: 'hsl(210 100% 70%)' },
+                                    { offset: 1, color: 'hsl(210 100% 50%)' }
+                                ]),
+                                borderRadius: [4, 4, 0, 0]
+                            }
+                        }],
+                        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true }
+                    };
+                    this.charts.region.setOption(regionOption);
+
+                    // 客户满意度
+                    this.charts.satisfaction = echarts.init(this.$refs.satisfactionChart);
+                    const satisfactionOption = {
+                        tooltip: {
+                            trigger: 'item',
+                            backgroundColor: 'hsl(var(--card))',
+                            borderColor: 'hsl(var(--border))',
+                            textStyle: { color: 'hsl(var(--foreground))' }
+                        },
+                        series: [{
+                            type: 'gauge',
+                            startAngle: 180,
+                            endAngle: 0,
+                            center: ['50%', '75%'],
+                            radius: '90%',
+                            min: 0,
+                            max: 100,
+                            splitNumber: 8,
+                            axisLine: {
+                                lineStyle: {
+                                    width: 6,
+                                    color: [
+                                        [0.25, 'hsl(0 84% 60%)'],
+                                        [0.5, 'hsl(45 100% 51%)'],
+                                        [0.75, 'hsl(190 80% 60%)'],
+                                        [1, 'hsl(142 76% 36%)']
+                                    ]
+                                }
+                            },
+                            pointer: {
+                                icon: 'path://M12.8,0.7l12,40.1H0.7L12.8,0.7z',
+                                length: '12%',
+                                width: 20,
+                                offsetCenter: [0, '-60%'],
+                                itemStyle: { color: 'hsl(var(--foreground))' }
+                            },
+                            axisTick: {
+                                length: 12,
+                                lineStyle: { color: 'auto', width: 2 }
+                            },
+                            splitLine: {
+                                length: 20,
+                                lineStyle: { color: 'auto', width: 5 }
+                            },
+                            axisLabel: {
+                                color: 'hsl(var(--muted-foreground))',
+                                fontSize: 12,
+                                distance: -60,
+                                formatter: function (value) {
+                                    if (value === 87.5) return '优秀';
+                                    else if (value === 62.5) return '良好';
+                                    else if (value === 37.5) return '一般';
+                                    else if (value === 12.5) return '较差';
+                                    return '';
+                                }
+                            },
+                            title: {
+                                offsetCenter: [0, '-10%'],
+                                fontSize: 16,
+                                color: 'hsl(var(--foreground))'
+                            },
+                            detail: {
+                                fontSize: 30,
+                                offsetCenter: [0, '-35%'],
+                                valueAnimation: true,
+                                formatter: function (value) {
+                                    return Math.round(value) + '%';
+                                },
+                                color: 'hsl(var(--foreground))'
+                            },
+                            data: [{
+                                value: 85,
+                                name: '满意度'
+                            }]
+                        }]
+                    };
+                    this.charts.satisfaction.setOption(satisfactionOption);
+                },
+
+                updateCharts() {
+                    // 更新图表数据（模拟实时数据）
+                    if (this.charts.sales) {
+                        const salesData = this.charts.sales.getOption().series[0].data;
+                        salesData.forEach((value, index) => {
+                            salesData[index] = value + (Math.random() - 0.5) * 100;
+                        });
+                        this.charts.sales.setOption({ series: [{ data: salesData }] });
+                    }
+
+                    if (this.charts.satisfaction) {
+                        const newValue = 70 + Math.random() * 30;
+                        this.charts.satisfaction.setOption({
+                            series: [{ data: [{ value: newValue, name: '满意度' }] }]
+                        });
+                    }
+                },
+
+                disposeCharts() {
+                    Object.values(this.charts).forEach(chart => {
+                        if (chart) chart.dispose();
+                    });
+                },
+
+                formatNumber(num) {
+                    if (num >= 10000) {
+                        return (num / 10000).toFixed(1) + '万';
+                    } else if (num >= 1000) {
+                        return (num / 1000).toFixed(1) + '千';
+                    }
+                    return num.toString();
+                },
+
+                getStatusType(status) {
+                    const statusMap = {
+                        '已完成': 'success',
+                        '处理中': 'warning',
+                        '待确认': 'info',
+                        '已取消': 'danger'
+                    };
+                    return statusMap[status] || 'info';
+                },
+
+                refreshData() {
+                    this.loadData();
+                },
+
+                exportData() {
+                    ElMessageBox.confirm('确定要导出当前数据报表吗？', '导出确认', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'info'
+                    }).then(() => {
+                        // 模拟导出功能
+                        const data = [
+                            ['订单号', '客户', '产品', '金额', '状态', '日期'],
+                            ...this.tableData.map(row => [
+                                row.orderNo, row.customer, row.product, row.amount, row.status, row.date
+                            ])
+                        ];
+                        
+                        const ws = XLSX.utils.aoa_to_sheet(data);
+                        const wb = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(wb, ws, '订单数据');
+                        XLSX.writeFile(wb, `凯鹏驾驶仓报表_${new Date().toLocaleDateString()}.xlsx`);
+                        
+                        ElMessage.success('报表导出成功');
+                    }).catch(() => {
+                        ElMessage.info('已取消导出');
+                    });
+                },
+
+                viewOrder(row) {
+                    ElMessageBox.alert(`
+                        <div style="padding: 1rem;">
+                            <h4>订单详情</h4>
+                            <p><strong>订单号：</strong>${row.orderNo}</p>
+                            <p><strong>客户：</strong>${row.customer}</p>
+                            <p><strong>产品：</strong>${row.product}</p>
+                            <p><strong>金额：</strong>¥${this.formatNumber(row.amount)}</p>
+                            <p><strong>状态：</strong>${row.status}</p>
+                            <p><strong>日期：</strong>${row.date}</p>
+                        </div>
+                    `, '订单详情', {
+                        dangerouslyUseHTMLString: true,
+                        confirmButtonText: '确定'
+                    });
+                },
+
+                processOrder(row) {
+                    ElMessageBox.confirm(`确定要处理订单 ${row.orderNo} 吗？`, '处理确认', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        ElMessage.success('订单处理成功');
+                        this.loadData();
+                    }).catch(() => {
+                        ElMessage.info('已取消处理');
+                    });
+                },
+
+                changeTheme(theme) {
+                    if (theme === 'auto') {
+                        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                        theme = prefersDark ? 'dark' : 'light';
+                    }
+                    document.documentElement.setAttribute('data-theme', theme);
+                },
+
+                saveSettings() {
+                    localStorage.setItem('dashboardSettings', JSON.stringify(this.settings));
+                    ElMessage.success('设置保存成功');
+                    this.showSettings = false;
+                },
+
+                startAutoRefresh() {
+                    this.refreshTimer = setInterval(() => {
+                        if (!this.loading) {
+                            this.updateCharts();
+                        }
+                    }, this.settings.refreshInterval * 1000);
+                },
+
+                stopAutoRefresh() {
+                    if (this.refreshTimer) {
+                        clearInterval(this.refreshTimer);
+                        this.refreshTimer = null;
+                    }
+                }
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+
+</html>

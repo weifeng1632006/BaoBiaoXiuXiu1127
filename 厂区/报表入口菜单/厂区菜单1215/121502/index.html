@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Element Plus CDN示例</title>
+    <!-- 引入Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- 引入Element Plus样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <script src="https://unpkg.com/element-plus/lib/index.full.js"></script>
+    <!-- 引入Element Plus JS -->
+    <script src="https://unpkg.com/element-plus"></script>
+
+    <!-- 引入Element Plus图标 -->
+
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* body {
+            font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+           */
+
+        #app {
+            width: 100%;
+            height: 100%;
+
+        }
+
+        .container {
+            min-width: 100%;
+            min-height: 100%;
+            margin-top: 20px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+
+
+        .content {
+            min-width: 99%;
+            min-height: 90%;
+            padding: 0px;
+            display: grid;
+            grid-template-columns: 100fr 1fr;
+            gap: 0px;
+            /* min-height: 700px;  */
+            /* background: rgb(60, 186, 255); */
+            background-color: transparent;
+        }
+
+        .search-panel {
+            /* background: rgb(60, 186, 255); */
+            margin: 10px;
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid #e4e7ed;
+            color: white;
+        }
+
+        .search-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #303133;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tree-panel {
+            margin: 10px;
+            /* background: rgb(66, 173, 235); */
+            border: 1px solid #e4e7ed;
+            border-radius: 8px;
+            padding: 4px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .tree-container {
+            /* height: 500px; */
+            overflow-y: auto;
+            border: 1px solid #e4e7ed;
+            border-radius: 6px;
+            padding: 16px;
+            /* background: #18518a; */
+            min-height: 700px;
+            background: linear-gradient(to bottom, #94e285, #4399a4);
+        }
+
+        .demo-section {
+
+            margin-bottom: 30px;
+        }
+
+        .el-tree {
+            /* 
+             background: rgb(103, 234, 127); */
+            background-color: transparent;
+
+
+        }
+
+        .stats {
+            margin-top: 16px;
+            padding: 12px 16px;
+            background: #f0f9ff;
+            border-radius: 6px;
+            border: 1px solid #bae0ff;
+            font-size: 14px;
+            color: #1890ff;
+        }
+
+        .highlight-node {
+            background-color: #fff2e8;
+            color: #fa541c;
+            border-radius: 3px;
+            padding: 2px 4px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 0px;
+            margin: 10px;
+            /* background: #fafafa; */
+            color: #909399;
+            border-top: 1px solid #e4e7ed;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .container {
+                margin: 10px;
+            }
+        }
+
+        /* 添加内部的线条和字体 */
+
+        /* 添加线条样式 */
+        .el-tree-node__children {
+            border-left: 1px dashed #c7ea9f;
+            /* 左侧线条 */
+            padding-left: 30px;
+            /* 确保子节点不与线条重叠 */
+            margin-left: 25px;
+            /* 确保线条有适当的间距 */
+        }
+
+        .el-tree-node__children::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            /* border-left: 1px solid #fcfcfc; */
+            /* 左侧线条 */
+        }
+
+        .el-tree-node__content {
+            position: relative;
+        }
+
+        .el-tree-node__content::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            /* border-left: 1px solid #a9accb; */
+            /* 左侧线条 */
+        }
+
+        .el-tree-node__content:last-child::before {
+            height: 100%;
+            /* 最后一个子节点的线条只显示一半 */
+        }
+
+        .el-tree-node__content::after {
+            content: '';
+            position: absolute;
+            left: 30px;
+            top: 60px;
+            width: 20px;
+            /* 确保线条不与节点内容重叠 */
+            /*border-top: 1px dashed #0ecc57;  /*水平线条 */
+        }
+
+        .el-tree-node__children::after {
+            content: '';
+            position: absolute;
+            left: 30;
+            top: 0;
+            width: 200px;
+            /* 确保线条不与节点内容重叠 */
+            /* border-top: 1px dashed #ccc; */
+            /* 水平线条 */
+        }
+
+        form {
+
+            margin-top: 20px;
+        }
+
+        /* 假设你的 CSS 文件是 index2.css 或者在 <style> 标签中定义 */
+        .custom-icon {
+            font-size: 20px;
+            /* 设置图标的大小 */
+        }
+
+        .folder-icon {
+            color: #409EFF;
+            /* 设置 Folder 图标的颜色 */
+        }
+
+        .document-icon {
+            color: #67C23A;
+            /* 设置 Document 图标的颜色 */
+        }
+
+        .custom-node {
+
+            font-size: 22px;
+        }
+
+        /* 调整节点之间的上下间隔 */
+        .el-tree-node {
+            margin-bottom: 5px;
+            /* 根据需要调整间距 */
+        }
+
+        /* 调整第一个节点的间距 */
+        /* .el-tree-node:first-child {
+            margin-bottom: 20px;
+            
+        }
+
+        .el-tree-node__children {
+            margin-bottom: 5px !important;
+        } */
+
+        .el-tree-node__content {
+            margin-bottom: 20px;
+            background-color: #ffff!important;
+        }
+
+        .titlename {
+            font-size: 20px;
+        }
+
+        .el-card.card-title {
+            border-radius: 12px;
+            /* 设置圆角半径 */
+        }
+
+        .card-title {
+            /* background-color: #a2c2e2; */
+            max-width: 500px;
+
+
+
+        }
+
+        .grid-content {
+            margin-bottom: 50px;
+        }
+
+        .fileroot {
+
+            font-size: 28px;
+            margin-bottom: 30px;
+            color: #1890ff;
+        }
+
+        .file-root-icon {
+            font-size: 28px;
+            font-weight: bold;
+        }
+    </style>
+
+
+
+</head>
+
+<body>
+
+    <div id="app">
+
+        <!-- <div class="tree-container"> -->
+        <!-- 示例1: 使用Element Plus图标 -->
+
+        <div class="container">
+
+            <div class="content">
+
+
+
+                <div class="tree-panel">
+
+                    <div class="search-title">
+                        <el-icon>
+                            <FolderOpened />
+                        </el-icon> <span class="titlename">厂区报表目录检索</span>
+
+                        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+
+                        <el-button type="success" @click="handleAutoExpand">全部展开</el-button>
+                        <el-button type="primary" @click="handleAutoExpand2">全部收缩</el-button>
+                        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                        <el-form label-width="80px">
+                            <el-form-item label="搜索内容">
+                                <el-input v-model="searchText" placeholder="输入关键字搜索节点" clearable @input="handleSearch"
+                                    @clear="clearSearch">
+                                    <template #prefix>
+                                        <el-icon>
+                                            <Search />
+                                        </el-icon>
+                                    </template>
+                                </el-input>
+                            </el-form-item>
+                    </div>
+
+                    <div class="tree-container">
+
+                        <div class="demo-section">
+                            <!-- <el-divider /> -->
+
+                            <!-- <dr></dr> -->
+                            <el-row :gutter="30">
+                                <el-col :span="2"></el-col>
+                                <el-col :span="10">
+                                    <div class="grid-content ep-bg-purple">
+                                        <el-card class="card-title" shadow="always">
+                                            <el-tree :data="data['shechangbb']" :props="defaultProps"
+                                                :expand-on-click-node="true" ref="treeRef1"
+                                                :filter-node-method="filterNode" node-key="id" :accordion="true"
+                                                :expand-on-click-node="false" :highlight-current="true"
+                                                :default-expanded-keys="expandedKeys" @node-click="handleNodeClick">
+                                                <template #default="{ node, data }">
+                                                    <span class="custom-node">
+                                                        <el-icon v-if="data.type === 'folder'"
+                                                            class="custom-icon folder-icon">
+                                                            <Folder />
+
+                                                        </el-icon>
+                                                        <el-icon v-else-if="data.type === 'file'"
+                                                            class="custom-icon document-icon">
+                                                            <Document />
+                                                        </el-icon>
+                                                        <el-icon v-else-if="data.type === 'fileroot'"
+                                                            class="custom-icon document-icon root file-root-icon">
+                                                            <!-- <Plus /> -->
+
+                                                            <!-- <CirclePlus /> -->
+                                                            <dcarets />
+
+                                                        </el-icon>
+                                                        <!-- <el-icon><CirclePlus /></el-icon> -->
+                                                        <span v-if="data.type === 'fileroot'" class="fileroot">{{
+                                                            node.label }}</span>
+                                                        <span v-else class="notfileroot">{{ node.label }}</span>
+                                                    </span>
+                                                </template>
+
+                                            </el-tree></el-card>
+
+
+                                    </div>
+                                    <!-- 2 -->
+                                    <div class="grid-content ep-bg-purple">
+                                        <el-card class="card-title" shadow="always">
+                                            <el-tree :data="data['shechangbb']" :props="defaultProps"
+                                                :expand-on-click-node="true" ref="treeRef2"
+                                                :filter-node-method="filterNode" node-key="id" :accordion="true"
+                                                :expand-on-click-node="false" :highlight-current="true"
+                                                :default-expanded-keys="expandedKeys" @node-click="handleNodeClick">
+                                                <template #default="{ node, data }">
+                                                    <span class="custom-node">
+                                                        <el-icon v-if="data.type === 'folder'"
+                                                            class="custom-icon folder-icon">
+                                                            <Folder />
+
+                                                        </el-icon>
+                                                        <el-icon v-else-if="data.type === 'file'"
+                                                            class="custom-icon document-icon">
+                                                            <Document />
+                                                        </el-icon>
+                                                        <el-icon v-else-if="data.type === 'fileroot'"
+                                                            class="custom-icon document-icon file-root-icon">
+
+                                                            <!-- <acircleplus /> -->
+                                                            <dcarets />
+
+
+                                                        </el-icon>
+
+
+
+                                                        <span v-if="data.type === 'fileroot'" class="fileroot">{{
+                                                            node.label }}</span>
+                                                        <span v-else class="notfileroot">{{ node.label }}</span>
+
+
+                                                    </span>
+                                                </template>
+
+                                            </el-tree></el-card>
+
+
+                                    </div>
+                                    <!-- 2 -->
+                                    <!-- 2 -->
+
+
+
+                                </el-col>
+
+                              
+
+
+                                <el-col :span="10">
+
+                                    <div class="grid-content ep-bg-purple">
+                                        <el-card class="card-title" shadow="always">
+                                            <el-tree :data="data['chengben']" :props="defaultProps"
+                                                :expand-on-click-node="true" ref="treeRef1"
+                                                :filter-node-method="filterNode" node-key="id" :accordion="true"
+                                                :expand-on-click-node="false" :highlight-current="true"
+                                                :default-expanded-keys="expandedKeys" @node-click="handleNodeClick">
+                                                <template #default="{ node, data }">
+                                                    <span class="custom-node">
+                                                        <el-icon v-if="data.type === 'folder'"
+                                                            class="custom-icon folder-icon">
+                                                            <Folder />
+
+                                                        </el-icon>
+                                                        <el-icon v-else-if="data.type === 'file'"
+                                                            class="custom-icon document-icon">
+                                                            <Document />
+                                                        </el-icon>
+                                                        <el-icon v-else-if="data.type === 'fileroot'"
+                                                            class="custom-icon document-icon root file-root-icon">
+                                                            <!-- <Plus /> -->
+
+                                                            <!-- <CirclePlus /> -->
+                                                            <dcarets />
+
+                                                        </el-icon>
+
+
+
+
+                                                        <!-- <el-icon><CirclePlus /></el-icon> -->
+
+                                                        <span v-if="data.type === 'fileroot'" class="fileroot">{{
+                                                            node.label }}</span>
+                                                        <span v-else class="notfileroot">{{ node.label }}</span>
+
+
+                                                    </span>
+                                                </template>
+
+                                            </el-tree></el-card>
+
+
+                                    </div>
+                                    <!-- 2 -->
+                                    <div class="grid-content ep-bg-purple">
+                                        <el-card class="card-title" shadow="always">
+                                            <el-tree :data="data['shechangbb']" :props="defaultProps"
+                                                :expand-on-click-node="true" ref="treeRef2"
+                                                :filter-node-method="filterNode" node-key="id" :accordion="true"
+                                                :expand-on-click-node="false" :highlight-current="true"
+                                                :default-expanded-keys="expandedKeys" @node-click="handleNodeClick">
+                                                <template #default="{ node, data }">
+                                                    <span class="custom-node">
+                                                        <el-icon v-if="data.type === 'folder'"
+                                                            class="custom-icon folder-icon">
+                                                            <Folder />
+
+                                                        </el-icon>
+                                                        <el-icon v-else-if="data.type === 'file'"
+                                                            class="custom-icon document-icon">
+                                                            <Document />
+                                                        </el-icon>
+                                                        <el-icon v-else-if="data.type === 'fileroot'"
+                                                            class="custom-icon document-icon file-root-icon">
+
+                                                            <!-- <acircleplus /> -->
+                                                            <dcarets />
+
+
+                                                        </el-icon>
+
+
+
+                                                        <span v-if="data.type === 'fileroot'" class="fileroot">{{
+                                                            node.label }}</span>
+                                                        <span v-else class="notfileroot">{{ node.label }}</span>
+
+
+                                                    </span>
+                                                </template>
+
+                                            </el-tree></el-card>
+
+
+                                    </div>
+
+                                </el-col>
+
+                            </el-row>
+
+
+
+                        </div>
+
+
+
+                    </div>
+                </div>
+
+
+
+            </div>
+
+            <div class="footer">
+                <p>© 凯鹏矿业 版权所有 打开时间: {{ currentTime }}</p>
+            </div>
+        </div>
+
+
+
+
+        <!-- </div> -->
+
+
+
+
+
+    </div>
+
+
+
+    <script src="./index.js"></script>
+
+
+</body>
+
+</html>

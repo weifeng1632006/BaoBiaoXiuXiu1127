@@ -2,7 +2,7 @@ const { createApp, ref, reactive, onMounted, nextTick } = Vue;
 
 const { ElTree, ElIcon, ElInput, ElForm, ElFormItem, ElRadioGroup, ElRadio, ElSwitch, ElTag } = ElementPlus;
 
-const { Folder, Document, CircleCheck, CircleClose, Warning, Search, Setting, FolderOpened, InfoFilled } = ElementPlusIconsVue;
+const { Folder, Document, CircleCheck, CircleClose, Warning, Search, Setting, FolderOpened, InfoFilled,DCaret } = ElementPlusIconsVue;
 
 // 添加事件监听器来捕获网络错误
 // window.addEventListener('error', function (event) {
@@ -15,59 +15,113 @@ const { Folder, Document, CircleCheck, CircleClose, Warning, Search, Setting, Fo
 
 const 生产系统报表 = {
     label: '生产统计报表',
-    type: 'folder',
+    type: 'fileroot',
     id: 1,
     children: [
-        {
-            type: 'file',
+       
+
+          {
+            type: 'folder',
             id: 11,
-            label: '总磨矿量表',
-            url: 'https://www.yunzhijia.com/maco-platform/view/report.do?reportId=f767ba38bcd64fa09638edbaa55d66b6',
+            label: '硫酸报表',
+            children: [
 
-        },
-
-        {
+                 {
             type: 'file',
-            id: 12,
-            label: '选矿分厂统计表',
-            url:"https://www.yunzhijia.com/maco-platform/view/report.do?reportId=8f05712624d244a4aacb1b1d723b7751"
-
-        },
-        {
-            type: 'file',
-            id: 13,
+            id: 111,
             label: '硫酸单耗统计表',
             url:'https://www.yunzhijia.com/maco-platform/view/report.do?reportId=0252e733caf2443a8764c0786cc1faf2'
 
         },
-        {
-            type: 'file',
-            id: 14,
-            label: '湿法分厂萃取统计表',
-            url:"https://www.yunzhijia.com/maco-platform/view/report.do?reportId=1936b912a0a14910bd32d0a058cc3181"
 
-        },
-        {
+         {
             type: 'file',
-            id: 15,
+            id: 112,
             label: '硫酸全厂库存表',
             url:'https://www.yunzhijia.com/maco-platform/view/report.do?reportId=bdb02438f3704e4ea2cbf0c2148fde64'
 
         },
-        {
+         {
             type: 'file',
-            id: 16,
+            id: 113,
             label: '硫酸一工段库存表',
              url:'https://www.yunzhijia.com/maco-platform/view/report.do?reportId=cea33775bfd24dcdaeef52a62db53dc4'
 
         },
            {
             type: 'file',
-            id: 16,
+            id: 114,
             label: '硫酸二工段库存表',
              url:'https://www.yunzhijia.com/maco-platform/view/report.do?reportId=98da5d467d0c4f49a9802c4c9ccca1b5'
 
         },
+
+            ]
+            
+        },
+
+        {
+            type: 'folder',
+            id: 12,
+            label: '湿法分厂报表',
+            children:[
+
+                 {
+            type: 'file',
+            id: 121,
+            label: '湿法分厂萃取统计表',
+            url:"https://www.yunzhijia.com/maco-platform/view/report.do?reportId=1936b912a0a14910bd32d0a058cc3181"
+
+        },
+
+         {
+            type: 'file',
+            id: 122,
+            label: '湿法分厂电积统计表',
+             url:'https://www.yunzhijia.com/maco-platform/view/report.do?reportId=b6d2b760b3264f9a865e265b82e14628'
+
+        },
+
+
+            ]
+           
+
+        },
+       
+
+
+        {
+            type: 'file',
+            id: 13,
+            label: '总磨矿量表',
+            url: 'https://www.yunzhijia.com/maco-platform/view/report.do?reportId=f767ba38bcd64fa09638edbaa55d66b6',
+
+        },
+
+           {
+            type: 'file',
+            id: 14,
+            label: '光伏储能供电统计表',
+            url: 'https://www.yunzhijia.com/maco-platform/view/report.do?reportId=369caef378f24658bf4288220f51da07',
+
+        },
+       
+          
+             {
+            type: 'file',
+            id: 15,
+            label: '选矿分厂统计表',
+            url:"https://www.yunzhijia.com/maco-platform/view/report.do?reportId=8f05712624d244a4aacb1b1d723b7751"
+        },
+
+            {
+            type: 'file',
+            id: 15,
+            label: '铜精矿产量计算表',
+            url:"https://www.yunzhijia.com/maco-platform/view/report.do?reportId=96cca17ac9814e8cb0153a21e1c068bd"
+
+        },
+         
     ],
 
 
@@ -333,7 +387,8 @@ const app = createApp({
         Search,
         Setting,
         FolderOpened,
-        InfoFilled
+        InfoFilled,
+         "dcarets": DCaret,
 
 
 

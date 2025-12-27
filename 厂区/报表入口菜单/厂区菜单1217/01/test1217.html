@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue 3 和 Element Plus 示例</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.3.4/dist/index.css">
+    <style>
+        .div-tree {
+            margin: 20px;
+        }
+        .custom-node {
+            display: flex;
+            align-items: center;
+        }
+        .custom-icon {
+            margin-right: 5px;
+        }
+        .fileroot {
+            font-weight: bold;
+        }
+        .notfileroot {
+            color: #555;
+        }
+        .highlight-node {
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div>
+            <el-form :inline="true" @submit.prevent="handleSearch">
+                <el-form-item>
+                    <el-input v-model="searchText" placeholder="搜索"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-radio-group v-model="searchMode">
+                        <el-radio label="fuzzy">模糊搜索</el-radio>
+                        <el-radio label="exact">精确搜索</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item>
+                    <el-switch v-model="enableHighlight" active-text="高亮"></el-switch>
+                </el-form-item>
+                <el-form-item>
+                    <el-switch v-model="autoExpand" active-text="自动展开"></el-switch>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="handleSearch">搜索</el-button>
+                </el-form-item>
+                <el-form-item>
+                    <el-button @click="clearSearch">清除</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+        <div v-for="(value, key) in data" :key="key" class="div-tree">
+            <treedata-el 
+                :tdata="value.data_name" 
+                :tdefaultProps="defaultProps" 
+                :func_setTreeRef="setTreeRef(key)"
+            ></treedata-el>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/vue@next"></script>
+    <script src="https://unpkg.com/element-plus@2.3.4"></script>
+    <script>
+        const { createApp, ref, defineComponent, onMounted, nextTick } = Vue;
+        const { ElTree, ElIcon, ElInput, ElForm, ElFormItem, ElRadioGroup, ElRadio, ElSwitch, ElTag } = ElementPlus;
+        const { Dcaret, Document } = ElementPlusIconsVue;
+
+        const treedata_el = defineComponent({
+            components: {
+                ElTree,
+                ElIcon,
+                "dcarets": Dcaret,
+                Document,
+            },
+            props: [
+                "tdata",
+                "tdefaultProps",
+                "func_setTreeRef",
+            ],
+            setup(props) {
+                const expandedKeys = ref([]);
+                const defaultProps = props.tdefaultProps;
+
+                const handleNodeClick = (data, node) => {
+                    console.log("我开始点击了------");
+                    console.log(data);
+
+                    // 检查 data 是否为 undefined
+                    if (!data) {
+                        console.error("data 是 undefined");
+                        return;
+                    }
+
+                    // 检查 data.label 是否为 undefined
+                    if (!data.label) {
+                        console.error("data.label 是 undefined");
+                        return;
+                    }
+
+                    if (!data.children || data.children.length === 0) {
+                        console.log('Third level node clicked:', data.label);
+                        console.log(`output->最后一个节点`);
+                        const url = data.url;
+                        if (url) {
+                            window.open(url, '_blank');
+                        } else {
+                            console.log('没有找到对应的 URL');
+                        }
+                    }
+                };
+
+                const filterNode = (value, data, node) => {
+                    if (!searchText.value) {
+                        matchedCount.value = 0;
+                        return true;
+                    }
+
+                    const label = data.label || '';
+                    let isMatch = false;
+
+                    if (searchMode.value === 'exact') {
+                        isMatch = label.includes(value);
+                    } else {
+                        isMatch = label.toLowerCase().includes(value.toLowerCase());
+                    }
+
+                    if (isMatch) {
+                        matchedCount.value++;
+                    }
+
+                    return isMatch;
+                };
+
+                const matchedCount = ref(0);
+                const searchText = ref('');
+                const searchMode = ref('fuzzy');
+                const enableHighlight = ref(true);
+                const autoExpand = ref(false);
+
+                const setTreeRef = (el) => {
+                    if (el) {
+                        props.func_setTreeRef(el);
+                    }
+                };
+
+                const highlightText = (text) => {
+                    if (!searchText.value || !enableHighlight.value) return text;
+
+                    const regex = new RegExp(`(${searchText.value})`, 'gi');
+                    return text.replace(regex, '<span class="highlight-node">$1</span>');
+                };
+
+                return {
+                    handleNodeClick,
+                    filterNode,
+                    matchedCount,
+                    searchText,
+                    searchMode,
+                    enableHighlight,
+                    autoExpand,
+                    setTreeRef,
+                    expandedKeys,
+                    highlightText,
+                };
+            },
+            template: `
+                <div class="div-tree">
+                    <el-tree 
+                        :data="tdata" 
+                        :props="tdefaultProps"
+                        :expand-on-click-node="false" 
+                        :ref="func_setTreeRef"
+                        :filter-node-method="filterNode" 
+                        node-key="id"
+                        :highlight-current="true"
+                        :default-expanded-keys="expandedKeys"
+                        accordion="true" 
+                        @node-click="handleNodeClick">
+                        <template #default="{ node, data }">
+                            <span class="custom-node" v-html="highlightText(node.label)"></span>
+                        </template>
+                    </el-tree>
+                </div>
+            `,
+        });
+
+        const treedata = {
+            "选矿分厂": {
+                label: '1.选矿分厂',
+                type: 'fileroot',
+                id: 1,
+                children: [
+                    {
+                        label: '电解铜产量表',
+                        type: "file",
+                        id: 11,
+                        url: "https://example.com/电解铜产量表"
+                    },
+                    {
+                        label: '电解铜进销存',
+                        type: "file",
+                        id: 12,
+                        url: "https://example.com/电解铜进销存"
+                    },
+                ],
+            },
+            "湿法分厂": {
+                label: '2.湿法分厂',
+                type: 'fileroot',
+                id: 2,
+                children: [
+                    {
+                        label: '1',
+                        type: "file",
+                        id: 21,
+                        url: "https://example.com/湿法分厂1"
+                    },
+                    {
+                        label: '2',
+                        type: "file",
+                        id: 22,
+                        url: "https://example.com/湿法分厂2"
+                    },
+                ],
+            },
+            "硫酸分厂": {
+                label: '3.硫酸分厂',
+                type: 'fileroot',
+                id: 3,
+                children: [
+                    {
+                        label: '1',
+                        type: "file",
+                        id: 31,
+                        url: "https://example.com/硫酸分厂1"
+                    },
+                    {
+                        label: '2',
+                        type: "file",
+                        id: 32,
+                        url: "https://example.com/硫酸分厂2"
+                    },
+                ],
+            },
+            "发电分厂": {
+                label: '4.发电分厂',
+                type: 'fileroot',
+                id: 4,
+                children: [
+                    {
+                        label: '1',
+                        type: "file",
+                        id: 41,
+                        url: "https://example.com/发电分厂1"
+                    },
+                    {
+                        label: '2',
+                        type: "file",
+                        id: 42,
+                        url: "https://example.com/发电分厂2"
+                    },
+                ],
+            },
+            "动力设备分厂": {
+                label: '5.动力设备分厂',
+                type: 'fileroot',
+                id: 5,
+                children: [
+                    {
+                        label: '1',
+                        type: "file",
+                        id: 51,
+                        url: "https://example.com/动力设备分厂1"
+                    },
+                    {
+                        label: '2',
+                        type: "file",
+                        id: 52,
+                        url: "https://example.com/动力设备分厂2"
+                    },
+                ],
+            },
+        };
+
+        const app = createApp({
+            components: {
+                treedata_el,
+                ElTree,
+                ElIcon,
+                ElInput,
+                ElForm,
+                ElFormItem,
+                ElRadioGroup,
+                ElRadio,
+                ElSwitch,
+                ElTag,
+                Dcaret,
+                Document,
+            },
+            setup() {
+                const searchText = ref('');
+                const searchMode = ref('fuzzy');
+                const enableHighlight = ref(true);
+                const autoExpand = ref(false);
+                const matchedCount = ref(0);
+                const expandedKeys = ref([]);
+
+                const defaultProps = {
+                    children: 'children',
+                    label: 'label',
+                };
+
+                const data = ref({
+                    "选矿分厂": {
+                        "data_name": [treedata['选矿分厂']],
+                        'treeref_name': ref(null),
+                    },
+                    "湿法分厂": {
+                        "data_name": [treedata['湿法分厂']],
+                        'treeref_name': ref(null),
+                    },
+                    "硫酸分厂": {
+                        "data_name": [treedata['硫酸分厂']],
+                        'treeref_name': ref(null),
+                    },
+                    "发电分厂": {
+                        "data_name": [treedata['发电分厂']],
+                        'treeref_name': ref(null),
+                    },
+                    "动力设备分厂": {
+                        "data_name": [treedata['动力设备分厂']],
+                        'treeref_name': ref(null),
+                    },
+                });
+
+                const handleNodeClick = (data, node) => {
+                    console.log("我开始点击了------");
+                    console.log(data);
+
+                    // 检查 data 是否为 undefined
+                    if (!data) {
+                        console.error("data 是 undefined");
+                        return;
+                    }
+
+                    // 检查 data.label 是否为 undefined
+                    if (!data.label) {
+                        console.error("data.label 是 undefined");
+                        return;
+                    }
+
+                    if (!data.children || data.children.length === 0) {
+                        console.log('Third level node clicked:', data.label);
+                        console.log(`output->最后一个节点`);
+                        const url = data.url;
+                        if (url) {
+                            window.open(url, '_blank');
+                        } else {
+                            console.log('没有找到对应的 URL');
+                        }
+                    }
+                };
+
+                const filterNode = (value, data, node) => {
+                    if (!searchText.value) {
+                        matchedCount.value = 0;
+                        return true;
+                    }
+
+                    const label = data.label || '';
+                    let isMatch = false;
+
+                    if (searchMode.value === 'exact') {
+                        isMatch = label.includes(value);
+                    } else {
+                        isMatch = label.toLowerCase().includes(value.toLowerCase());
+                    }
+
+                    if (isMatch) {
+                        matchedCount.value++;
+                    }
+
+                    return isMatch;
+                };
+
+                const handleSearch = () => {
+                    console.log('这里开始搜查----------------');
+                    matchedCount.value = 0;
+                    for (const key in data.value) {
+                        if (data.value.hasOwnProperty(key)) {
+                            const treeref_name = data.value[key]['treeref_name'];
+                            if (treeref_name && treeref_name.value) {
+                                const treeref = treeref_name.value;
+                                treeref.filter(searchText.value);
+                                if (autoExpand.value && searchText.value) {
+                                    expandMatchedNodes(treeref.store._getAllNodes());
+                                }
+                            } else {
+                                console.log("treeref_name is null or undefined for key:", key);
+                            }
+                        }
+                    }
+                };
+
+                const clearSearch = () => {
+                    matchedCount.value = 0;
+                    expandedKeys.value = [];
+                    searchText.value = '';
+                    for (const key in data.value) {
+                        if (data.value.hasOwnProperty(key)) {
+                            const treeref_name = data.value[key].treeref_name;
+                            if (treeref_name && treeref_name.value) {
+                                const treeref = treeref_name.value;
+                                treeref.filter('');
+                            }
+                        }
+                    }
+                };
+
+                const expandMatchedNodes = (nodes) => {
+                    const expandKeys = [];
+
+                    const traverse = (nodeList, parentKeys = []) => {
+                        nodeList.forEach(node => {
+                            const currentKeys = [...parentKeys, node.id];
+
+                            const label = node.label || '';
+                            let isMatch = false;
+
+                            if (searchMode.value === 'exact') {
+                                isMatch = label.includes(searchText.value);
+                            } else {
+                                isMatch = label.toLowerCase().includes(searchText.value.toLowerCase());
+                            }
+
+                            if (isMatch) {
+                                expandKeys.push(...currentKeys);
+                            }
+
+                            if (node.children) {
+                                traverse(node.children, currentKeys);
+                            }
+                        });
+                    };
+
+                    traverse(nodes);
+                    expandedKeys.value = [...new Set(expandKeys)];
+                };
+
+                const highlightText = (text) => {
+                    if (!searchText.value || !enableHighlight.value) return text;
+
+                    const regex = new RegExp(`(${searchText.value})`, 'gi');
+                    return text.replace(regex, '<span class="highlight-node">$1</span>');
+                };
+
+                const setTreeRef = (key) => {
+                    return (el) => {
+                        if (el) {
+                            console.log("el no null-----------------");
+                            data.value[key].treeref_name.value = el;
+                        }
+                    };
+                };
+
+                const updateTime = () => {
+                    const now = new Date();
+                    currentTime.value = now.toLocaleString('zh-CN');
+                };
+
+                const currentTime = ref(updateTime());
+
+                onMounted(() => {
+                    console.log('Tree component mounted');
+                });
+
+                return {
+                    data,
+                    defaultProps,
+                    searchText,
+                    searchMode,
+                    enableHighlight,
+                    autoExpand,
+                    matchedCount,
+                    expandedKeys,
+                    handleSearch,
+                    clearSearch,
+                    highlightText,
+                    setTreeRef,
+                    handleNodeClick,
+                    currentTime,
+                };
+            },
+        });
+
+        app.use(ElementPlus);
+        app.mount('#app');
+    </script>
+</body>
+</html>

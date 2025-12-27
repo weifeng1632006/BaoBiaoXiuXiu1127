@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>凯鹏驾驶仓设计 - 优化版</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue@3.5.12/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="//unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+
+    <style>
+        :root {
+            --primary-bg: #f5f7fa;
+            --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            --accent-blue: #409EFF;
+            --accent-green: #67C23A;
+            --text-dark: #2c3e50;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-dark);
+        }
+
+        #app {
+            padding: 20px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        /* 顶部标题行美化 */
+        .data-row-1 {
+            margin-bottom: 25px;
+        }
+
+        .card-title-product {
+            text-align: center;
+            border-radius: 12px !important;
+            border: none !important;
+            box-shadow: var(--card-shadow) !important;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff !important;
+        }
+
+        .card-title-product span {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--accent-blue);
+            letter-spacing: 1px;
+        }
+
+        /* 日期选择器美化 */
+        .card-date {
+            border-radius: 12px !important;
+            border: none !important;
+            box-shadow: var(--card-shadow) !important;
+            background: #fff !important;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px !important;
+        }
+
+        /* 产品数据卡片组件样式 */
+        .card-data-col-1 {
+            border: none !important;
+            border-radius: 16px !important;
+            box-shadow: var(--card-shadow) !important;
+            margin-bottom: 20px;
+            background: #fff !important;
+            transition: transform 0.3s ease;
+        }
+
+        .card-data-col-1:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-product-name {
+            display: block;
+            font-size: 18px;
+            font-weight: bold;
+            color: #34495e;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent-blue);
+            padding-left: 12px;
+        }
+
+        /* 成本数据列 */
+        .card-data-col-2 {
+            border: none !important;
+            border-radius: 16px !important;
+            box-shadow: var(--card-shadow) !important;
+            background: #fff !important;
+            min-height: 700px;
+            padding: 10px;
+        }
+
+        /* 其他报表按钮区域 */
+        .skip-other-web {
+            margin-bottom: 20px;
+        }
+
+        .other-table {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 55px;
+            margin: 5px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .other-table:hover {
+            opacity: 0.85;
+        }
+
+        /* 图表容器美化 */
+        .chart-box {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--card-shadow);
+        }
+
+        /* 组件内部数据样式覆盖 */
+        .product-data-1 span {
+            font-size: 22px !important;
+            font-weight: bold;
+            color: var(--accent-blue) !important;
+        }
+
+        .product-data-3 span span {
+            color: #e67e22 !important;
+            font-weight: bold;
+        }
+
+        .p-chenben-2 {
+            font-size: 26px !important;
+            font-weight: bold;
+            color: #e74c3c !important;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 1200px) {
+            .el-col {
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <el-row :gutter="20" class="data-row-1">
+            <el-col :xs="24" :sm="12" :md="9">
+                <el-card class="card-title-product">
+                    <span><el-icon style="vertical-align: middle; margin-right: 8px;"><Box /></el-icon>产品生产数据</span>
+                </el-card>
+            </el-col>
+            <el-col :xs="24" :sm="12" :md="6">
+                <el-card class="card-title-product">
+                    <span><el-icon style="vertical-align: middle; margin-right: 8px;"><Money /></el-icon>成本监控指标</span>
+                </el-card>
+            </el-col>
+            <el-col :xs="24" :sm="24" :md="9">
+                <el-card class="card-date">
+                    <span style="white-space: nowrap; margin-right: 15px;">查询日期：</span>
+                    <el-date-picker v-model="startDate" type="date" placeholder="请选择日期" style="width: 100%;" />
+                </el-card>
+            </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+            <el-col :xs="24" :lg="9">
+                <product-card pnumber_d="54400.125" wanchen_d="0.85" pnumber_m="1632000.375" wanchen_m="0.78"
+                    pnumber_y="19584000.5" wanchen_y="0.92" inumber="12500.00"></product-card>
+
+                <product-card pnumber_d="42100.50" wanchen_d="0.91" pnumber_m="1263000.00" wanchen_m="0.88"
+                    pnumber_y="15156000.00" wanchen_y="0.85" inumber="8400.25"></product-card>
+
+                <product-card pnumber_d="31000.00" wanchen_d="0.75" pnumber_m="930000.00" wanchen_m="0.82"
+                    pnumber_y="11160000.00" wanchen_y="0.79" inumber="5200.10"></product-card>
+            </el-col>
+
+            <el-col :xs="24" :lg="6">
+                <el-card class="card-data-col-2">
+                    <chenben-data titlename_1="月度生产成本" cbdata_1="25625.00" titlename_2="年度累计成本"
+                        cbdata_2="2562500.00"></chenben-data>
+                    <el-divider></el-divider>
+                    <chenben-data titlename_1="能源消耗成本" cbdata_1="12400.50" titlename_2="年度消耗统计"
+                        cbdata_2="148800.00"></chenben-data>
+                    <el-divider></el-divider>
+                    <chenben-data titlename_1="人工支出成本" cbdata_1="8900.00" titlename_2="年度人工统计"
+                        cbdata_2="106800.00"></chenben-data>
+                    <el-divider></el-divider>
+                    <chenben-data titlename_1="维护设备成本" cbdata_1="4500.25" titlename_2="年度维护统计"
+                        cbdata_2="54000.00"></chenben-data>
+                </el-card>
+            </el-col>
+
+            <el-col :xs="24" :lg="9">
+                <div class="skip-other-web">
+                    <el-row :gutter="10">
+                        <el-col :span="12"><div class="other-table"><span>质量分析报表</span></div></el-col>
+                        <el-col :span="12"><div class="other-table"><span>设备运行报表</span></div></el-col>
+                        <el-col :span="12"><div class="other-table"><span>库存预警报表</span></div></el-col>
+                        <el-col :span="12"><div class="other-table"><span>损耗统计报表</span></div></el-col>
+                    </el-row>
+                </div>
+
+                <div class="chart-box">
+                    <div ref="barChart" style="width: 100%; height: 350px;"></div>
+                </div>
+                <div class="chart-box">
+                    <div ref="lineChart" style="width: 100%; height: 350px;"></div>
+                </div>
+                <el-row :gutter="20">
+                    <el-col :span="12">
+                        <div class="chart-box">
+                            <div ref="pieChart" style="width: 100%; height: 300px;"></div>
+                        </div>
+                    </el-col>
+                    <el-col :span="12">
+                        <div class="chart-box">
+                            <div ref="radarChart" style="width: 100%; height: 300px;"></div>
+                        </div>
+                    </el-col>
+                </el-row>
+            </el-col>
+        </el-row>
+    </div>
+
+    <script src="./index.js"></script>
+</body>
+
+</html>

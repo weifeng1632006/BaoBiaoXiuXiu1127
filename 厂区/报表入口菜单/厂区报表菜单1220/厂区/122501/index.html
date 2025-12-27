@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>厂区报表目录检索系统</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+
+    <style>
+        :root {
+            --primary-blue: #409EFF;
+            --light-blue-bg: #f0f7ff;
+            --border-color: #dcdfe6;
+            --text-dark: #2c3e50;
+            --guide-line: #a5c7eb;
+            /* 垂直引导线颜色 */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--light-blue-bg);
+            font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+            color: var(--text-dark);
+        }
+
+        #app {
+            padding: 25px;
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        /* 顶部导航 */
+        .header-panel {
+            background: #ffffff;
+            padding: 18px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(64, 158, 255, 0.1);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 6px solid var(--primary-blue);
+        }
+
+        .header-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* 搜索框区域 */
+        .control-bar {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border: 1px solid #e0eaf5;
+        }
+
+        /* 卡片网格布局 */
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+            gap: 24px;
+        }
+
+        .factory-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #e0eaf5;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+
+        .factory-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(64, 158, 255, 0.15);
+            border-color: var(--primary-blue);
+        }
+
+        .card-header {
+            padding: 14px 20px;
+            background: linear-gradient(to right, #e6f1fc, #ffffff);
+            border-bottom: 1px solid #e0eaf5;
+            font-weight: bold;
+            color: #1a5c9e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 25px;
+        }
+
+        /* --- 垂直引导线 CSS 核心实现 --- */
+        .el-tree {
+            padding: 15px;
+            background: transparent !important;
+        }
+
+        .el-tree-node {
+            position: relative;
+            padding-left: 10px;
+        }
+
+        .el-tree-node__children {
+            padding-left: 20px;
+            /* 子节点偏移量 */
+        }
+
+        /* 垂直虚线 */
+        .el-tree-node::before {
+            content: "";
+            position: absolute;
+            left: -4px;
+            top: -10px;
+            bottom: 0;
+            border-left: 1px solid  var(--guide-line);
+        }
+
+        /* 水平横向虚线 */
+        .el-tree-node::after {
+            content: "";
+            position: absolute;
+            left: -4px;
+            top: 13px;
+            width: 15px;
+            border-top: 1px solid  var(--guide-line);
+        }
+
+        /* 最后一个子节点截断垂直线 */
+        .el-tree-node:last-child::before {
+            height: 24px;
+        }
+
+        /* 隐藏最顶级节点的引导线 */
+        #app .el-tree>.el-tree-node::before,
+        #app .el-tree>.el-tree-node::after {
+            display: none;
+        }
+
+        /* 节点内容间距与图标颜色 */
+        .node-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+            font-weight: 600;
+            /* 字体粗细：400为常规，500为中等，600为加粗 */
+
+            color: #334455;
+            /* 文本颜色 */
+        }
+
+        /* 专门针对根节点（分厂级别）加粗 */
+        .node-content .icon-root+span {
+            font-size: 20px;
+            /* 根节点可以更大一点 */
+            font-weight: 700;
+        }
+
+        /* 修改节点高度（从而增加间距） */
+        .el-tree-node__content {
+            height: 45px !important;
+            /* 默认通常是26px-30px，调大到45px间距会非常舒适 */
+            margin: 4px 0;
+            /* 也可以通过外边距来增加节点间的空隙 */
+            border-radius: 8px;
+            /* 顺便给悬停的高亮框加个圆角 */
+        }
+
+        /* 调整引导线位置以匹配新的高度 */
+        .el-tree-node::after {
+            top: 22.5px;
+            /* 这个值通常设为 height 的一半，确保横线对齐图标中心 */
+        }
+
+        .icon-root {
+            color: #1a5c9e;
+            font-size: 18px;
+        }
+
+        /* 根分厂：深蓝 */
+        .icon-folder {
+            color: #5dade2;
+            font-size: 16px;
+        }
+
+        /* 文件夹：天蓝 */
+        .icon-file {
+            color: #52c41a;
+            font-size: 16px;
+        }
+
+        /* 具体报表：翠绿 */
+
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            padding: 20px;
+            color: #909399;
+            font-size: 14px;
+            border-top: 1px solid #dcdfe6;
+        }
+
+        /* 搜索匹配高亮 */
+        .highlight {
+            color: #f56c6c;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .report-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-panel {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+
+
+        <div class="control-bar">
+            <span>报表目录检索</span>&nbsp;&nbsp;&nbsp;&nbsp;
+            <el-input v-model="searchText" placeholder="搜索报表名称..." prefix-icon="Search" clearable @input="handleSearch"
+                style="width: 320px">
+            </el-input>
+
+            <el-button-group>
+                <el-button type="primary" plain @click="handleAutoExpand" icon="Expand">展开全部</el-button>
+                <el-button type="success" plain @click="handleAutoExpand2" icon="Fold">收起全部</el-button>
+            </el-button-group>
+
+            <span style="font-size: 14px; color: #606266;">
+                已找到 <b style="color: var(--primary-blue);">{{ matchedCount }}</b> 份相关报表
+            </span>
+        </div>
+
+        <div class="report-grid">
+            <div v-for="(item, key) in data" :key="key" class="factory-card">
+                <div class="card-header"  @click="toggleTreeCollapse(key)">
+                    <el-icon>
+                        <!-- <OfficeBuilding /> -->
+                    </el-icon>
+                    <span>{{ key }}</span>
+                </div>
+
+                <el-tree :data="item.data_name" :props="defaultProps" :filter-node-method="filterNode"
+                    :ref="setTreeRef(key)" node-key="id" :indent="0" highlight-current @node-click="handleNodeClick"
+                    :default-expanded-keys="expandedKeys">
+                    <template #default="{ node, data }">
+                        <span class="node-content">
+                            <el-icon v-if="data.type === 'fileroot'" class="icon-root">
+                                <Folder />
+                            </el-icon>
+                            <el-icon v-else-if="data.children && data.children.length > 0" class="icon-folder">
+                                <Folder />
+                            </el-icon>
+                            <el-icon v-else class="icon-file">
+                                <Document />
+                            </el-icon>
+
+                            <span :style="{ fontWeight: data.type === 'fileroot' ? 'bold' : 'normal' }">
+                                {{ node.label }}
+                            </span>
+                        </span>
+                    </template>
+                </el-tree>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>©  凯鹏矿业 · 统计报表平台</p>
+        </div>
+    </div>
+
+    <script src="./index.js"></script>
+</body>
+
+</html>

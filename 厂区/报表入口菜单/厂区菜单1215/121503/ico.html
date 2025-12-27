@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Element Plus 图标示例</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus/lib/index.full.js"></script>
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+</head>
+
+<body>
+    <div id="app">
+        <el-icon :size="16">
+            <Folder />
+        </el-icon>
+        <el-icon :size="16">
+            <Document />
+        </el-icon>
+
+        <el-icon :size="16">
+            <Plus />
+        </el-icon>
+        <!-- 其他图标 -->
+    </div>
+    <script>
+        const { createApp, h } = Vue;
+        const { ElIcon, ElTree } = ElementPlus;
+        const { Folder, Document, CircleCheck, CircleClose, Warning, Search, Setting, FolderOpened, InfoFilled, Plus, CirclePlus, Add } = ElementPlusIconsVue;
+
+        createApp({
+            components: {
+                ElIcon,
+                ElTree,
+                Folder,
+                Document,
+                CircleCheck,
+                CircleClose,
+                Warning,
+                Search,
+                Setting,
+                FolderOpened,
+                InfoFilled,
+                Plus,
+                CirclePlus,
+                Add
+            },
+           
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+
+</html>
