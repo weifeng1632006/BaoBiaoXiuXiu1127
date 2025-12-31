@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>凯鹏矿业 - 数字化经营全维度大屏</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #020617;
+            --panel: rgba(15, 23, 42, 0.9);
+            --blue: #38bdf8;
+            --amber: #fbbf24;
+            --green: #10b981;
+            --red: #f87171;
+            --silver: #94a3b8;
+        }
+
+        body { margin: 0; background-color: var(--bg); color: #f8fafc; font-family: 'Inter', sans-serif; overflow: hidden; }
+        .bg-gradient { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% -20%, #1e293b, #020617); z-index: -1; }
+        #app { padding: 12px; height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(56, 189, 248, 0.3); padding-bottom: 8px; margin-bottom: 12px; }
+        .header-title { font-size: 24px; font-weight: bold; letter-spacing: 5px; text-shadow: 0 0 10px var(--blue); }
+
+        .glass-panel { background: var(--panel); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 6px; padding: 12px; height: 100%; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .mod-header { color: var(--blue); font-size: 14px; font-weight: bold; margin-bottom: 12px; border-left: 4px solid var(--blue); padding-left: 10px; }
+
+        /* 左侧卡片 */
+        .prod-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 10px; margin-bottom: 10px; }
+        .num-val { font-family: 'Orbitron', sans-serif; font-size: 18px; color: #fff; }
+        .num-label { font-size: 10px; color: var(--silver); margin-bottom: 2px; }
+        
+        /* 成本网格 */
+        .cost-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 4px; margin-bottom: 10px; }
+        .trend-up { color: var(--red); font-size: 11px; font-family: 'Orbitron'; }
+        .trend-down { color: var(--green); font-size: 11px; font-family: 'Orbitron'; }
+
+        /* 右侧按钮 */
+        .nav-btn {
+            background: linear-gradient(90deg, rgba(56, 189, 248, 0.1), rgba(56, 189, 248, 0.2));
+            border: 1px solid var(--blue); color: #fff; padding: 10px; text-align: center;
+            border-radius: 4px; cursor: pointer; margin-bottom: 8px; transition: 0.3s; font-size: 13px;
+        }
+        .nav-btn:hover { background: var(--blue); color: #000; box-shadow: 0 0 12px var(--blue); }
+
+        .chart-box { height: 180px; width: 100%; margin-top: 5px; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="bg-gradient"></div>
+    <div id="app">
+        <div class="header">
+            <el-date-picker v-model="selectDate" type="date" value-format="YYYY-MM-DD" size="small" style="width:140px"/>
+            <div class="header-title">凯鹏矿业·智慧生产经营指挥舱</div>
+            <div style="font-family: 'Orbitron'; color: var(--blue); font-size:14px">{{ clock }}</div>
+        </div>
+
+        <el-row :gutter="12" style="flex: 1; overflow: hidden;">
+            <el-col :span="7">
+                <div class="glass-panel" style="overflow-y: auto;">
+                    <div class="mod-header">生产实绩概览</div>
+                    <div class="prod-card" v-for="item in products" :key="item.name">
+                        <div style="font-size:13px; font-weight:bold; margin-bottom:8px;" :style="{color: item.color}">{{ item.name }}</div>
+                        <el-row>
+                            <el-col :span="8"><div class="num-label">当日(t)</div><div class="num-val">{{ item.day }}</div></el-col>
+                            <el-col :span="8"><div class="num-label">月累(t)</div><div class="num-val">{{ item.month }}</div></el-col>
+                            <el-col :span="8" style="text-align:right"><div class="num-label">完成率</div><div style="font-family:Orbitron; color:var(--amber)">{{ item.rate }}%</div></el-col>
+                        </el-row>
+                        <div style="height:3px; background:#1e293b; margin-top:8px; border-radius:2px; overflow:hidden">
+                            <div :style="{width: item.rate + '%', background: item.color}" style="height:100%"></div>
+                        </div>
+                    </div>
+                    <div id="chartSmall" class="chart-box" style="height: 150px;"></div>
+                </div>
+            </el-col>
+
+            <el-col :span="10">
+                <div class="glass-panel" style="overflow-y: auto;">
+                    <div class="mod-header">全流程成本/经营矩阵</div>
+                    
+                    <div v-for="c in costs" :key="c.title" style="margin-bottom:15px">
+                        <div style="font-size:12px; color:var(--silver); margin-bottom:6px;">● {{ c.title }} (元/单位)</div>
+                        <div class="cost-grid">
+                            <div><div class="num-label">本月单位成本</div><div class="num-val" style="font-size:16px">{{ c.now }}</div></div>
+                            <div><div class="num-label">上月单位成本</div><div class="num-val" style="font-size:16px; color:var(--silver)">{{ c.last }}</div></div>
+                            <div><div class="num-label">年度平均成本</div><div class="num-val" style="font-size:16px">{{ c.year }}</div></div>
+                            <div>
+                                <div class="num-label">月度环比±%</div>
+                                <div :class="c.hb > 0 ? 'trend-up' : 'trend-down'">{{ c.hb > 0 ? '+' : '' }}{{ c.hb }}% {{ c.hb > 0 ? '↑' : '↓' }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mod-header">月度综合生产波动趋势</div>
+                    <div id="chartMain" class="chart-box" style="height: 240px;"></div>
+                </div>
+            </el-col>
+
+            <el-col :span="7">
+                <div class="glass-panel">
+                    <div class="mod-header">成本分布分析</div>
+                    <div id="chartPie" style="height: 180px;"></div>
+                    
+                    <div class="mod-header">光伏系统实时出力 (24H)</div>
+                    <div id="chartPV" class="chart-box" style="height: 160px; margin-bottom:15px"></div>
+
+                    <div class="mod-header">快速跳转导航</div>
+                    <div class="nav-btn" @click="go(1)">📈 电解铜生产日报系统</div>
+                    <div class="nav-btn" @click="go(2)">📊 硫酸成本管控分析明细</div>
+                    <div class="nav-btn" @click="go(3)">☀️ 清洁能源发电效益评估</div>
+                </div>
+            </el-col>
+        </el-row>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const selectDate = ref('2025-12-30');
+                const clock = ref('');
+                const products = [
+                    { name: '电解铜主产线', day: '152.4', month: '4,280', rate: '92.5', color: 'var(--blue)' },
+                    { name: '硫酸综合产线', day: '820.5', month: '22,410', rate: '94.2', color: 'var(--green)' },
+                    { name: '光伏发电系统', day: '12,450', month: '382k', rate: '102', color: 'var(--amber)' }
+                ];
+                const costs = [
+                    { title: '电解铜成本分析', now: '42,580.4', last: '41,850.1', year: '42,120', hb: 1.74 },
+                    { title: '硫酸成本分析', now: '285.12', last: '292.45', year: '288.5', hb: -2.51 },
+                    { title: '光伏度电成本', now: '0.322', last: '0.341', year: '0.335', hb: -5.88 }
+                ];
+
+                const initAllCharts = () => {
+                    // 图1: 产量小趋势 (左侧)
+                    const c1 = echarts.init(document.getElementById('chartSmall'), 'dark');
+                    c1.setOption({
+                        backgroundColor: 'transparent', grid: {top:10, bottom:20, left:40, right:10},
+                        xAxis: {type: 'category', data: ['W1','W2','W3','W4'], axisLabel: {fontSize: 10}},
+                        yAxis: {type: 'value', splitLine: {lineStyle: {color: 'rgba(255,255,255,0.05)'}}},
+                        series: [{type: 'bar', data: [140, 155, 142, 152], color: '#38bdf8', barWidth: '40%'}]
+                    });
+
+                    // 图2: 月度产量趋势 (中间)
+                    const c2 = echarts.init(document.getElementById('chartMain'), 'dark');
+                    c2.setOption({
+                        backgroundColor: 'transparent', grid: {top:30, bottom:30, left:50, right:20},
+                        legend: { data: ['电解铜', '硫酸'], bottom: 0, textStyle: {color: '#ccc'} },
+                        xAxis: { type: 'category', data: ['7月','8月','9月','10月','11月','12月'] },
+                        yAxis: { type: 'value', splitLine: {lineStyle: {color: 'rgba(255,255,255,0.05)'}} },
+                        series: [
+                            { name: '电解铜', type: 'line', smooth: true, data: [120, 135, 140, 138, 145, 152], color: '#38bdf8', areaStyle: {opacity: 0.1} },
+                            { name: '硫酸', type: 'line', smooth: true, data: [780, 810, 800, 820, 790, 820], color: '#10b981' }
+                        ]
+                    });
+
+                    // 图3: 饼图 (右侧)
+                    const c3 = echarts.init(document.getElementById('chartPie'), 'dark');
+                    c3.setOption({
+                        backgroundColor: 'transparent',
+                        series: [{ type: 'pie', radius: ['50%', '80%'], data: [
+                            {value: 75, name: '精矿', itemStyle: {color: '#38bdf8'}},
+                            {value: 25, name: '能耗', itemStyle: {color: '#fbbf24'}}
+                        ], label: {show: false} }]
+                    });
+
+                    // 图4: 光伏24H出力 (右侧)
+                    const c4 = echarts.init(document.getElementById('chartPV'), 'dark');
+                    c4.setOption({
+                        backgroundColor: 'transparent', grid: {top:10, bottom:20, left:40, right:10},
+                        xAxis: {type: 'category', data: ['06:00','10:00','14:00','18:00','22:00'], axisLabel: {fontSize: 9}},
+                        yAxis: {show: false},
+                        series: [{type: 'line', smooth: true, data: [0, 4500, 8900, 2100, 0], color: '#fbbf24', areaStyle: {opacity: 0.2}}]
+                    });
+                };
+
+                onMounted(() => {
+                    setInterval(() => clock.value = new Date().toLocaleTimeString(), 1000);
+                    initAllCharts();
+                });
+
+                return { selectDate, clock, products, costs, go: (n) => window.open('https://www.yunzhijia.com/report' + n) };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

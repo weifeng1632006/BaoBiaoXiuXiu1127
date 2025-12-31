@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>凯鹏矿业 - 数字化经营全维度大屏</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #020617;
+            --panel: rgba(15, 23, 42, 0.9);
+            --blue: #38bdf8;
+            --amber: #fbbf24;
+            --green: #10b981;
+            --red: #f87171;
+            --silver: #94a3b8;
+        }
+
+        body { margin: 0; background-color: var(--bg); color: #f8fafc; font-family: 'Inter', sans-serif; overflow: hidden; }
+        .bg-gradient { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% -20%, #1e293b, #020617); z-index: -1; }
+        #app { padding: 15px; height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; }
+
+        /* 顶部 */
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(56, 189, 248, 0.3); padding-bottom: 10px; margin-bottom: 15px; }
+        .header-title { font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #fff; text-shadow: 0 0 10px var(--blue); }
+
+        /* 通用面板 */
+        .glass-panel { background: var(--panel); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 6px; padding: 15px; height: 100%; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .mod-header { color: var(--blue); font-size: 15px; font-weight: bold; margin-bottom: 15px; border-left: 4px solid var(--blue); padding-left: 10px; }
+
+        /* 左侧独立生产卡片 */
+        .prod-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px; margin-bottom: 12px; transition: all 0.3s; }
+        .prod-card:hover { border-color: var(--blue); background: rgba(56, 189, 248, 0.05); }
+
+        /* 数值样式 */
+        .num-val { font-family: 'Orbitron', sans-serif; font-size: 20px; color: #fff; }
+        .num-label { font-size: 11px; color: var(--silver); margin-bottom: 4px; }
+        .rate-text { font-family: 'Orbitron'; color: var(--amber); font-weight: bold; }
+
+        /* 成本网格 */
+        .cost-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
+        .trend-up { color: var(--red); font-size: 12px; }
+        .trend-down { color: var(--green); font-size: 12px; }
+
+        /* 右侧按钮 */
+        .nav-btn {
+            background: linear-gradient(90deg, rgba(56, 189, 248, 0.1), rgba(56, 189, 248, 0.2));
+            border: 1px solid var(--blue); color: #fff; padding: 15px; text-align: center;
+            border-radius: 4px; cursor: pointer; margin-bottom: 15px; transition: all 0.3s;
+            font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .nav-btn:hover { background: var(--blue); color: #000; box-shadow: 0 0 15px var(--blue); }
+
+        .pg-mini { height: 4px; background: #1e293b; border-radius: 2px; margin: 8px 0; overflow: hidden; }
+        .pg-fill { height: 100%; box-shadow: 0 0 8px var(--blue); transition: width 0.8s; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="bg-gradient"></div>
+    <div id="app">
+        <div class="header">
+            <el-date-picker v-model="selectDate" type="date" value-format="YYYY-MM-DD" size="small" />
+            <div class="header-title">凯鹏矿业 · 智慧生产全维度监控大屏</div>
+            <div style="font-family: 'Orbitron'; color: var(--blue)">{{ clock }}</div>
+        </div>
+
+        <el-row :gutter="15" style="flex: 1; overflow: hidden;">
+            <el-col :span="8">
+                <div class="glass-panel" style="overflow-y: auto;">
+                    <div class="mod-header">实时生产指标</div>
+                    
+                    <div class="prod-card">
+                        <div style="font-size:14px; font-weight:bold; margin-bottom:10px; color:var(--blue)">电解铜主产线</div>
+                        <el-row>
+                            <el-col :span="8"><div class="num-label">当日产量(t)</div><div class="num-val">{{ mock.cu.day }}</div></el-col>
+                            <el-col :span="8"><div class="num-label">月累计(t)</div><div class="num-val" style="color:var(--amber)">{{ mock.cu.mSum }}</div></el-col>
+                            <el-col :span="8" style="text-align:right"><div class="num-label">月完成率</div><div class="rate-text">{{ mock.cu.mRate }}%</div></el-col>
+                        </el-row>
+                        <div class="pg-mini"><div class="pg-fill" style="background:var(--blue); width:92.5%"></div></div>
+                        <el-row style="margin-top:10px;">
+                            <el-col :span="12"><div class="num-label">年度累计(t)</div><div class="num-val" style="font-size:16px">{{ mock.cu.ySum }}</div></el-col>
+                            <el-col :span="12" style="text-align:right"><div class="num-label">当前库存</div><div class="num-val" style="color:var(--green)">{{ mock.cu.stock }}</div></el-col>
+                        </el-row>
+                    </div>
+
+                    <div class="prod-card">
+                        <div style="font-size:14px; font-weight:bold; margin-bottom:10px; color:var(--green)">硫酸综合产线</div>
+                        <el-row>
+                            <el-col :span="8"><div class="num-label">当日产量(t)</div><div class="num-val">{{ mock.acid.day }}</div></el-col>
+                            <el-col :span="8"><div class="num-label">月累计(t)</div><div class="num-val" style="color:var(--amber)">{{ mock.acid.mSum }}</div></el-col>
+                            <el-col :span="8" style="text-align:right"><div class="num-label">月完成率</div><div class="rate-text">{{ mock.acid.mRate }}%</div></el-col>
+                        </el-row>
+                        <div class="pg-mini"><div class="pg-fill" style="background:var(--green); width:94.2%"></div></div>
+                        <el-row style="margin-top:10px;">
+                            <el-col :span="12"><div class="num-label">全厂总库存</div><div class="num-val" style="color:var(--green)">{{ mock.acid.stock }}</div></el-col>
+                        </el-row>
+                    </div>
+
+                    <div class="prod-card">
+                        <div style="font-size:14px; font-weight:bold; margin-bottom:10px; color:var(--amber)">光伏清洁能源</div>
+                        <el-row>
+                            <el-col :span="8"><div class="num-label">当日发电(kwh)</div><div class="num-val">{{ mock.pv.day }}</div></el-col>
+                            <el-col :span="8"><div class="num-label">月累计(kwh)</div><div class="num-val" style="color:var(--amber)">{{ mock.pv.mSum }}</div></el-col>
+                            <el-col :span="8" style="text-align:right"><div class="num-label">效益达成率</div><div class="rate-text">{{ mock.pv.mRate }}%</div></el-col>
+                        </el-row>
+                        <div class="pg-mini"><div class="pg-fill" style="background:var(--amber); width:102%"></div></div>
+                    </div>
+                </div>
+            </el-col>
+
+            <el-col :span="10">
+                <div class="glass-panel" style="overflow-y: auto;">
+                    <div class="mod-header">单位成本与经营分析 (元/t)</div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <div style="font-size:13px; color:var(--blue); margin-bottom:10px;">● 电解铜成本矩阵</div>
+                        <div class="cost-grid">
+                            <div><div class="num-label">本月单位成本</div><div class="num-val">42,580.42</div></div>
+                            <div><div class="num-label">上月单位成本</div><div class="num-val" style="color:var(--silver)">41,850.10</div></div>
+                            <div><div class="num-label">年度平均成本</div><div class="num-val">42,120.00</div></div>
+                            <div>
+                                <div class="num-label">月度环比±%</div>
+                                <div class="trend-up">+1.74% ↑</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <div style="font-size:13px; color:var(--green); margin-bottom:10px;">● 硫酸成本矩阵 (综合均值)</div>
+                        <div class="cost-grid">
+                            <div><div class="num-label">本月单位成本</div><div class="num-val">285.12</div></div>
+                            <div><div class="num-label">上月单位成本</div><div class="num-val" style="color:var(--silver)">292.45</div></div>
+                            <div><div class="num-label">年度平均成本</div><div class="num-val">288.50</div></div>
+                            <div>
+                                <div class="num-label">月度环比±%</div>
+                                <div class="trend-down">-2.51% ↓</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style="font-size:13px; color:var(--amber); margin-bottom:10px;">● 光伏度电成本分析 (元/kwh)</div>
+                        <div class="cost-grid">
+                            <div><div class="num-label">本月LCOE</div><div class="num-val">0.322</div></div>
+                            <div><div class="num-label">上月LCOE</div><div class="num-val" style="color:var(--silver)">0.341</div></div>
+                            <div><div class="num-label">年度平均</div><div class="num-val">0.335</div></div>
+                            <div>
+                                <div class="num-label">效益环比提升</div>
+                                <div class="trend-down">-5.88% ↓</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </el-col>
+
+            <el-col :span="6">
+                <div class="glass-panel">
+                    <div id="costPieChart" style="height: 200px; margin-bottom: 20px;"></div>
+                    
+                    <div class="mod-header">生产管理跳转</div>
+                    
+                    <div class="nav-btn" onclick="window.open('https://www.yunzhijia.com/report1')">
+                        <el-icon><DataLine /></el-icon> 铜生产日报表
+                    </div>
+                    <div class="nav-btn" onclick="window.open('https://www.yunzhijia.com/report2')">
+                        <el-icon><Histogram /></el-icon> 硫酸一/二期成本明细
+                    </div>
+                    <div class="nav-btn" onclick="window.open('https://www.yunzhijia.com/report3')">
+                        <el-icon><TrendCharts /></el-icon> 光伏能源效益评估
+                    </div>
+
+                    <div style="margin-top: 30px; padding: 10px; border-top: 1px solid rgba(255,255,255,0.05);">
+                        <div class="num-label">系统说明</div>
+                        <div style="font-size:11px; color:#475569; line-height:1.6">
+                            本看板每5分钟自动更新。<br/>
+                            成本数据关联 ERP 财务账套。<br/>
+                            光伏数据关联 SCADA 实时监控。
+                        </div>
+                    </div>
+                </div>
+            </el-col>
+        </el-row>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted, reactive } = Vue;
+
+        createApp({
+            setup() {
+                const selectDate = ref('2025-12-30');
+                const clock = ref('');
+
+                // 核心假数据参考
+                const mock = reactive({
+                    cu: { day: '152.4', mSum: '4,250', mRate: 92.5, ySum: '51,200', stock: '1,240' },
+                    acid: { day: '820.5', mSum: '22,410', mRate: 94.2, stock: '2,450' },
+                    pv: { day: '12,450', mSum: '382,000', mRate: 102.3 }
+                });
+
+                const initPie = () => {
+                    const chart = echarts.init(document.getElementById('costPieChart'), 'dark');
+                    chart.setOption({
+                        backgroundColor: 'transparent',
+                        title: { text: '成本构成分布', left: 'center', textStyle: {fontSize: 12, color: '#94a3b8'} },
+                        series: [{
+                            type: 'pie', radius: ['40%', '70%'],
+                            data: [
+                                { value: 72, name: '原材料', itemStyle: {color: '#38bdf8'} },
+                                { value: 18, name: '电力能耗', itemStyle: {color: '#fbbf24'} },
+                                { value: 10, name: '制造费用', itemStyle: {color: '#10b981'} }
+                            ],
+                            label: { show: false }
+                        }]
+                    });
+                };
+
+                onMounted(() => {
+                    setInterval(() => { clock.value = new Date().toLocaleTimeString(); }, 1000);
+                    initPie();
+                });
+
+                return { selectDate, clock, mock };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

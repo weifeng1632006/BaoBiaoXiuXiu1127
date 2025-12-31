@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>凯鹏驾驶仓 - 科技视觉版</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue@3.5.12/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="//unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+
+    <style>
+        :root {
+            --tech-cyan: #00f7ff;
+            --tech-blue: #007aff;
+            --bg-dark: #020617;
+            --card-bg: rgba(10, 25, 47, 0.7);
+            --border-color: rgba(0, 247, 255, 0.3);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: radial-gradient(circle at center, #0a192f 0%, var(--bg-dark) 100%) !important;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+
+        /* 科技感背景网格 */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(18, 55, 105, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(18, 55, 105, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -1;
+        }
+
+        #animation-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        #app {
+            padding: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 玻璃拟态卡片 */
+        .el-card {
+            background: var(--card-bg) !important;
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color) !important;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8) !important;
+            color: #fff !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .el-card:hover {
+            border-color: var(--tech-cyan) !important;
+            box-shadow: 0 0 20px rgba(0, 247, 255, 0.2) !important;
+        }
+
+        /* 顶部标题区域 */
+        .card-title-product {
+            text-align: center;
+            margin-bottom: 20px;
+            min-height: 80px;
+            background: linear-gradient(90deg, rgba(0, 247, 255, 0.05), rgba(0, 122, 255, 0.1)) !important;
+            border-bottom: 2px solid var(--tech-cyan) !important;
+        }
+
+        .card-title-product span {
+            font-size: 26px;
+            color: var(--tech-cyan) !important;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0, 247, 255, 0.5);
+        }
+
+        /* 按钮样式 */
+        .other-table {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 8px;
+            height: 40px;
+            background: rgba(0, 247, 255, 0.1);
+            border: 1px solid var(--tech-cyan);
+            color: var(--tech-cyan);
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .other-table:hover {
+            background: var(--tech-cyan);
+            color: #000;
+            box-shadow: 0 0 15px var(--tech-cyan);
+        }
+
+        /* 日期选择器适配深色 */
+        .el-input__inner {
+            background-color: rgba(0, 0, 0, 0.3) !important;
+            color: #fff !important;
+            border-color: var(--border-color) !important;
+        }
+
+        /* 中间列成本数据 */
+        .columns-mid {
+            min-height: 940px;
+            border-left: 2px solid var(--tech-cyan) !important;
+        }
+
+        .bar-chart-cs {
+            margin-bottom: 20px;
+        }
+
+        hr {
+            border: 0;
+            border-top: 1px solid rgba(0, 247, 255, 0.2);
+            margin: 25px 0;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #4e5969;
+            font-size: 12px;
+        }
+
+        /* 覆盖 Element Plus 默认样式 */
+        .el-card__body { padding: 15px !important; }
+    </style>
+</head>
+
+<body>
+    <canvas id="animation-canvas"></canvas>
+
+    <div id="app">
+        <div class="data-row-1">
+            <el-row :gutter="20">
+                <el-col :span="9">
+                    <el-card class="card-title-product">
+                        <el-row align="middle">
+                            <el-col :span="12" style="text-align: left;">
+                                <span style="font-size: 13px; color: #8892b0; margin-right: 10px;">DATA SELECT</span>
+                                <el-date-picker v-model="selectdate" type="date" value-format="YYYY-MM-DD" style="width: 180px;" />
+                            </el-col>
+                            <el-col :span="12" style="text-align: left;">
+                                <span>生产数据</span>
+                            </el-col>
+                        </el-row>
+                    </el-card>
+                </el-col>
+                <el-col :span="6">
+                    <el-card class="card-title-product">
+                        <span>成本数据</span>
+                    </el-card>
+                </el-col>
+                <el-col :span="9">
+                    <div class="skip-other-web">
+                        <el-row :gutter="10">
+                            <el-col :span="12">
+                                <div class="other-table" @click="skipToWeb">凯鹏统计报表</div>
+                                <div class="other-table">电解铜成本报表</div>
+                            </el-col>
+                            <el-col :span="12">
+                                <div class="other-table">硫酸一成本报表</div>
+                                <div class="other-table">硫酸二成本报表</div>
+                            </el-col>
+                        </el-row>
+                    </div>
+                </el-col>
+            </el-row>
+        </div>
+
+        <el-row :gutter="20">
+            <el-col :span="9">
+                <product-card product_name="电解铜产量 (Tons)" 
+                    :pnumber_d="fteDataTable['电解铜产量']?.当日产量"
+                    :pnumber_m="fteDataTable['电解铜产量']?.当月数量" 
+                    :pnumber_m_jh="planData['电解铜产量']?.['明细_月度指标量']"
+                    :pnumber_y="fteDataTable['电解铜产量']?.本年累计产量" 
+                    :pnumber_y_jh="planData['电解铜产量']?.['明细_年度指标量']"
+                    :inumber="fteDataTable['电解铜进销存']?.累计库存2" 
+                    :pronames="['日产量','月累积','年累计','当前库存']"
+                    :isload="loading"></product-card>
+
+                <product-card product_name="硫酸总产量 (Tons)"
+                    :pnumber_d="(fteDataTable['硫酸一产量']?.当日产量 || 0) + (fteDataTable['硫酸二产量']?.当日产量 || 0)"
+                    :pnumber_m="(fteDataTable['硫酸一产量']?.当月数量 || 0) + (fteDataTable['硫酸二产量']?.当月数量 || 0)"
+                    :pnumber_m_jh="planData['硫酸产量']?.['明细_月度指标量']"
+                    :pnumber_y="(fteDataTable['硫酸一产量']?.本年累计产量 || 0) + (fteDataTable['硫酸二产量']?.本年累计产量 || 0)"
+                    :pnumber_y_jh="planData['硫酸产量']?.['明细_年度指标量']" 
+                    :inumber="fteDataTable['硫酸总库存']?.硫酸全厂当日库存"
+                    intround="2" :isload="loading" :pronames="['日产量','月累积','年累计','全厂库存']"></product-card>
+
+                <product-card product_name="光伏累计发电 (kWh)" 
+                    :pnumber_d="fteDataTable['光伏发电']?.光伏供电合计"
+                    :pnumber_m="fteDataTable['光伏发电']?.光伏供电月累计" 
+                    :pnumber_m_jh="planData['光伏发电']?.['明细_月度指标量']"
+                    :pnumber_y="fteDataTable['光伏发电']?.光伏供电年累计" 
+                    :pnumber_y_jh="planData['光伏发电']?.['明细_年度指标量']"
+                    inumber="0" intround="0" :isload="loading" :pronames="['日发电','月累计','年累计','-']"></product-card>
+            </el-col>
+
+            <el-col :span="6">
+                <el-card class="columns-mid">
+                    <chenben-data titlename_1="当月电解铜成本" :cbdata_1="fteDataTable['电解铜产量']?.当月单位成本" 
+                        titlename_2="上月电解铜成本" :cbdata_2="fteDataTable['电解铜产量']?.上月单位成本" intround="3"></chenben-data>
+
+                    <chenben-data titlename_1="年度累计成本" :cbdata_1="fteDataTable['电解铜产量']?.本年单位成本" 
+                        titlename_2="月度环比±%" :cbdata_2="fteDataTable['电解铜产量']?.上月单位成本对比" baifen="true" intround="3"></chenben-data>
+                    
+                    <hr />
+                    
+                    <chenben-data titlename_1="当月硫酸成本"
+                        :cbdata_1="((fteDataTable['硫酸一产量']?.当月单位成本 || 0) + (fteDataTable['硫酸二产量']?.当月单位成本 || 0))/2"
+                        titlename_2="上月硫酸成本"
+                        :cbdata_2="((fteDataTable['硫酸一产量']?.上月单位成本 || 0) + (fteDataTable['硫酸二产量']?.上月单位成本 || 0))/2"
+                        intround="3"></chenben-data>
+
+                    <chenben-data titlename_1="年度累计成本"
+                        :cbdata_1="((fteDataTable['硫酸一产量']?.本年单位成本 || 0) + (fteDataTable['硫酸二产量']?.本年单位成本 || 0))/2"
+                        titlename_2="月度环比±%"
+                        :cbdata_2="((fteDataTable['硫酸一产量']?.上月单位成本对比 || 0) + (fteDataTable['硫酸二产量']?.上月单位成本对比 || 0))/2"
+                        baifen="true" intround="3"></chenben-data>
+                </el-card>
+            </el-col>
+
+            <el-col :span="9">
+                <el-card class="bar-chart-cs">
+                    <div ref="barChart" style="width: 100%; height: 260px;"></div>
+                </el-card>
+                <el-card class="bar-chart-cs">
+                    <div ref="acidChart" style="width: 100%; height: 260px;"></div>
+                </el-card>
+                <el-card class="bar-chart-cs">
+                    <div ref="pvChart" style="width: 100%; height: 260px;"></div>
+                </el-card>
+            </el-col>
+        </el-row>
+
+        <div class="footer">
+            <p>系统状态：在线 | © 凯鹏矿业 数字驾驶仓控制中心</p>
+        </div>
+    </div>
+
+  <script src="./index.js"></script>
+</body>
+</html>

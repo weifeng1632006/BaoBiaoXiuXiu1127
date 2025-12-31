@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧矿山数字孪生监控中心</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/theme-chalk/dark/css-vars.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #050a18;
+            --panel-bg: rgba(13, 27, 60, 0.8);
+            --neon-blue: #00f2ff;
+            --neon-green: #39ff14;
+        }
+        body { 
+            margin: 0; 
+            background-color: var(--bg-color); 
+            color: #fff;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+        }
+        #animation-canvas { position: fixed; top: 0; left: 0; z-index: 0; }
+        #app { position: relative; z-index: 1; padding: 15px; height: 100vh; display: flex; flex-direction: column; }
+
+        /* 科技感大标题 */
+        .screen-header {
+            height: 60px;
+            background: url('https://img.alicdn.com/tfs/TB1.77Ag7T2gK0jSZFkXXcIQFXa-1920-1080.png') no-repeat center;
+            background-size: 100% 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        .header-title {
+            font-size: 28px;
+            letter-spacing: 4px;
+            font-weight: bold;
+            background: linear-gradient(to bottom, #fff, var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(0,242,255,0.5);
+        }
+
+        /* 科技感卡片 */
+        .tech-card {
+            background: var(--panel-bg) !important;
+            border: 1px solid rgba(0, 242, 255, 0.3) !important;
+            box-shadow: inset 0 0 15px rgba(0, 242, 255, 0.1);
+            color: #fff !important;
+            margin-bottom: 15px;
+        }
+        .tech-card :deep(.el-card__header) {
+            border-bottom: 1px solid rgba(0, 242, 255, 0.2);
+            padding: 10px 15px;
+        }
+
+        /* 数值发光 */
+        .value-highlight {
+            font-family: 'Orbitron', sans-serif; /* 建议引入科技字体 */
+            color: var(--neon-blue);
+            text-shadow: 0 0 8px var(--neon-blue);
+        }
+
+        .chart-box { height: 280px; width: 100%; }
+        
+        /* 环比样式 */
+        .trend-up { color: #ff4d4f; text-shadow: 0 0 5px #ff4d4f; }
+        .trend-down { color: var(--neon-green); text-shadow: 0 0 5px var(--neon-green); }
+
+        .data-label { color: #8a97b0; font-size: 12px; }
+        
+        /* 底部装饰线 */
+        .footer-line {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="animation-canvas"></canvas>
+    <div id="app">
+        <header class="screen-header">
+            <div class="header-title">智慧矿山·生产指挥中心</div>
+            <div style="position: absolute; right: 20px; top: 15px;">
+                <el-date-picker v-model="selectdate" type="date" size="small" effect="dark"></el-date-picker>
+            </div>
+        </header>
+
+        <el-row :gutter="15" style="margin-top: 15px; flex: 1; overflow: hidden;">
+            <el-col :span="17">
+                <el-row :gutter="15">
+                    <el-col :span="12">
+                        <el-card class="tech-card">
+                            <template #header><span>电解铜核心指标</span></template>
+                            <product-card 
+                                product_name="COPPER PRODUCTION" 
+                                :pnumber_d="data.copper.d" :pnumber_m="data.copper.m" :pnumber_m_jh="8000"
+                                :pnumber_y="data.copper.y" :pnumber_y_jh="90000"
+                                :pronames="['当日(T)', '本月累计', '本年累计', '完成率']">
+                            </product-card>
+                        </el-card>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-card class="tech-card">
+                            <template #header><span>硫酸系统状态</span></template>
+                            <el-row>
+                                <el-col :span="12">
+                                    <div class="data-label">一系统日产</div>
+                                    <div class="value-highlight" style="font-size: 24px;">{{data.ls1.d}} <small style="font-size: 12px;">T</small></div>
+                                </el-col>
+                                <el-col :span="12">
+                                    <div class="data-label">二系统日产</div>
+                                    <div class="value-highlight" style="font-size: 24px; color: var(--neon-green);">{{data.ls2.d}} <small style="font-size: 12px;">T</small></div>
+                                </el-col>
+                            </el-row>
+                        </el-card>
+                    </el-col>
+                </el-row>
+
+                <el-row :gutter="15">
+                    <el-col :span="24">
+                        <el-card class="tech-card">
+                            <div ref="mainChart" class="chart-box" style="height: 450px;"></div>
+                        </el-card>
+                    </el-col>
+                </el-row>
+            </el-col>
+
+            <el-col :span="7">
+                <el-card class="tech-card">
+                    <template #header><span>成本环比动态</span></template>
+                    <div style="margin-bottom: 20px;">
+                        <div class="data-label">本月生产单耗 (RMB/T)</div>
+                        <div class="value-highlight" style="font-size: 32px;">8,421.50</div>
+                        <div style="font-size: 13px;">环比上月：<span class="trend-up">↑ 2.4%</span></div>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <div class="data-label">年度预算执行</div>
+                        <el-progress :percentage="78" color="#00f2ff" :stroke-width="12"></el-progress>
+                    </div>
+                </el-card>
+
+                <el-card class="tech-card">
+                    <template #header><span>清洁能源：光伏发电</span></template>
+                    <div ref="pvChart" class="chart-box" style="height: 180px;"></div>
+                    <div style="text-align: center; margin-top: 10px;">
+                        <span class="data-label">今日发电量:</span> 
+                        <span class="value-highlight" style="margin-left: 10px;">12,450 kWh</span>
+                    </div>
+                </el-card>
+
+                <el-card class="tech-card" style="text-align: center;">
+                    <div class="data-label">系统数据同步中...</div>
+                    <div style="color: #409EFF; font-size: 12px; margin-top: 5px;">Refresh: 2025-12-30 17:20:45</div>
+                </el-card>
+            </el-col>
+        </el-row>
+        <div class="footer-line"></div>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted, reactive } = Vue;
+
+        // 产量卡片子组件
+        const productCard = {
+            props: ["pnumber_d", "pnumber_m", "pnumber_m_jh", "pnumber_y", "pnumber_y_jh", "pronames"],
+            template: `
+                <div style="display: flex; justify-content: space-between;">
+                    <div v-for="(label, i) in pronames" :key="i" style="text-align: center;">
+                        <div class="data-label">{{label}}</div>
+                        <div class="value-highlight" style="font-size: 18px; margin-top: 5px;">
+                            {{ i==0 ? pnumber_d : i==1 ? pnumber_m : i==2 ? pnumber_y : ((pnumber_m/pnumber_m_jh)*100).toFixed(1)+'%' }}
+                        </div>
+                    </div>
+                </div>`
+        };
+
+        createApp({
+            components: { 'product-card': productCard },
+            setup() {
+                const selectdate = ref("2025-12-30");
+                const mainChart = ref(null);
+                const pvChart = ref(null);
+                const data = reactive({
+                    copper: { d: 245.2, m: 7241.5, y: 84210 },
+                    ls1: { d: 412.5 }, ls2: { d: 388.9 }
+                });
+
+                const initCharts = () => {
+                    const main = echarts.init(mainChart.value, 'dark');
+                    main.setOption({
+                        backgroundColor: 'transparent',
+                        title: { text: '24H 生产负荷监控', textStyle: { color: '#00f2ff', fontSize: 14 } },
+                        tooltip: { trigger: 'axis' },
+                        legend: { data: ['电解铜', '硫酸'], right: 10 },
+                        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                        xAxis: { type: 'category', data: Array.from({length: 24}, (_, i) => i + ':00'), axisLine: { lineStyle: { color: '#31456a' } } },
+                        yAxis: { type: 'value', splitLine: { lineStyle: { color: '#1a2b4d' } } },
+                        series: [
+                            {
+                                name: '电解铜', type: 'line', smooth: true,
+                                lineStyle: { width: 3, color: '#00f2ff' },
+                                areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{offset: 0, color: 'rgba(0,242,255,0.3)'}, {offset: 1, color: 'transparent'}]) },
+                                data: Array.from({length: 24}, () => Math.random() * 50 + 200)
+                            },
+                            {
+                                name: '硫酸', type: 'bar', barWidth: 10,
+                                itemStyle: { color: '#39ff14' },
+                                data: Array.from({length: 24}, () => Math.random() * 30 + 150)
+                            }
+                        ]
+                    });
+
+                    const pv = echarts.init(pvChart.value, 'dark');
+                    pv.setOption({
+                        backgroundColor: 'transparent',
+                        radar: {
+                            indicator: [
+                                { name: '光照强度', max: 100 }, { name: '转化率', max: 100 },
+                                { name: '设备健康', max: 100 }, { name: '储能状态', max: 100 },
+                                { name: '并网稳定', max: 100 }
+                            ],
+                            shape: 'circle',
+                            splitArea: { show: false }
+                        },
+                        series: [{
+                            type: 'radar',
+                            data: [{ value: [80, 92, 95, 70, 88], name: '实时状态', areaStyle: { color: 'rgba(0,242,255,0.3)' } }]
+                        }]
+                    });
+                };
+
+                const initMatrix = () => {
+                    const canvas = document.getElementById('animation-canvas');
+                    const ctx = canvas.getContext('2d');
+                    let w, h, particles = [];
+                    const resize = () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; };
+                    window.onresize = resize; resize();
+
+                    class P {
+                        constructor() { this.reset(); }
+                        reset() { this.x = Math.random() * w; this.y = Math.random() * h; this.s = Math.random() * 1; this.v = Math.random() * 0.5; }
+                        move() { this.y -= this.v; if(this.y < 0) this.reset(); }
+                        draw() { ctx.fillStyle = "rgba(0, 242, 255, 0.2)"; ctx.fillRect(this.x, this.y, this.s, this.s * 10); }
+                    }
+                    for(let i=0; i<100; i++) particles.push(new P());
+                    function draw() {
+                        ctx.clearRect(0, 0, w, h);
+                        particles.forEach(p => { p.move(); p.draw(); });
+                        requestAnimationFrame(draw);
+                    }
+                    draw();
+                };
+
+                onMounted(() => {
+                    initCharts();
+                    initMatrix();
+                });
+
+                return { selectdate, data, mainChart, pvChart };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

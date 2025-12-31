@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧矿山-冶铜生产大数据监控平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body { background-color: #060b19; color: #e2e8f0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(51, 65, 85, 1); backdrop-filter: blur(8px); }
+        .copper-text { color: #d97706; } /* 铜色 */
+        .gradient-border { border-left: 4px solid #d97706; }
+    </style>
+</head>
+<body class="p-4 lg:p-8">
+    <div id="app">
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold tracking-wider copper-text">智铜·智慧生产管控平台</h1>
+                <p class="text-slate-400">实时生产数据统计与 KPI 指标监测系统</p>
+            </div>
+            <div class="text-right">
+                <div class="text-2xl font-mono">{{ currentTime }}</div>
+                <div class="text-green-500 flex items-center justify-end">
+                    <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                    系统运行正常
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div v-for="kpi in kpis" :key="kpi.label" class="glass-card p-6 rounded-xl gradient-border">
+                <div class="text-slate-400 text-sm mb-2">{{ kpi.label }}</div>
+                <div class="flex items-baseline">
+                    <span class="text-3xl font-bold mr-2">{{ kpi.value }}</span>
+                    <span class="text-slate-500 text-sm">{{ kpi.unit }}</span>
+                </div>
+                <div :class="kpi.trend >= 0 ? 'text-green-400' : 'text-red-400'" class="text-xs mt-2">
+                    {{ kpi.trend >= 0 ? '↑' : '↓' }} {{ Math.abs(kpi.trend) }}% 较昨日
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="glass-card p-6 rounded-xl">
+                <h3 class="text-lg font-semibold mb-4">产量趋势 (近7日)</h3>
+                <div id="line-chart" style="height: 350px;"></div>
+            </div>
+            <div class="glass-card p-6 rounded-xl">
+                <h3 class="text-lg font-semibold mb-4">选矿品位 vs 回收率</h3>
+                <div id="mixed-chart" style="height: 350px;"></div>
+            </div>
+        </div>
+
+        <div class="glass-card p-6 rounded-xl overflow-hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-semibold">生产详细日报 (模拟实时数据)</h3>
+                <button @click="generateReport" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded text-sm transition">
+                    导出 Excel 报表
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-slate-700 text-slate-400 text-sm">
+                            <th class="pb-3 px-2">批次编号</th>
+                            <th class="pb-3 px-2">原矿投入 (t)</th>
+                            <th class="pb-3 px-2">精矿产出 (t)</th>
+                            <th class="pb-3 px-2">原矿品位 (%)</th>
+                            <th class="pb-3 px-2">回收率 (%)</th>
+                            <th class="pb-3 px-2">状态</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm">
+                        <tr v-for="row in reportData" :key="row.id" class="border-b border-slate-800 hover:bg-slate-800/50">
+                            <td class="py-4 px-2 font-mono">{{ row.id }}</td>
+                            <td class="py-4 px-2">{{ row.input }}</td>
+                            <td class="py-4 px-2">{{ row.output }}</td>
+                            <td class="py-4 px-2 text-amber-500">{{ row.grade }}%</td>
+                            <td class="py-4 px-2">{{ row.recovery }}%</td>
+                            <td class="py-4 px-2">
+                                <span class="px-2 py-1 bg-green-900/50 text-green-400 rounded text-xs">已入库</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const currentTime = ref(new Date().toLocaleString());
+                const kpis = ref([
+                    { label: '电解铜日产量', value: '452.8', unit: 't', trend: 2.5 },
+                    { label: '选矿平均回收率', value: '91.2', unit: '%', trend: -0.4 },
+                    { label: '铜精矿品位', value: '24.5', unit: '%', trend: 1.2 },
+                    { label: '吨铜综合能耗', value: '315', unit: 'kgce', trend: -5.1 }
+                ]);
+
+                const reportData = ref([
+                    { id: 'BATCH-20231027-01', input: 2450, output: 120.5, grade: 0.85, recovery: 92.1 },
+                    { id: 'BATCH-20231027-02', input: 2100, output: 105.2, grade: 0.82, recovery: 91.5 },
+                    { id: 'BATCH-20231027-03', input: 2800, output: 142.8, grade: 0.88, recovery: 93.4 },
+                    { id: 'BATCH-20231027-04', input: 2300, output: 115.0, grade: 0.84, recovery: 92.0 }
+                ]);
+
+                // 定时更新时间
+                setInterval(() => {
+                    currentTime.value = new Date().toLocaleString();
+                }, 1000);
+
+                const initCharts = () => {
+                    // 产量趋势图
+                    const lineChart = echarts.init(document.getElementById('line-chart'), 'dark');
+                    lineChart.setOption({
+                        backgroundColor: 'transparent',
+                        tooltip: { trigger: 'axis' },
+                        xAxis: { type: 'category', data: ['10-21', '10-22', '10-23', '10-24', '10-25', '10-26', '10-27'] },
+                        yAxis: { type: 'value', name: '产量 (吨)' },
+                        series: [{
+                            data: [420, 432, 401, 434, 490, 430, 452],
+                            type: 'line',
+                            smooth: true,
+                            lineStyle: { color: '#d97706', width: 4 },
+                            areaStyle: {
+                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                    { offset: 0, color: 'rgba(217, 119, 6, 0.4)' },
+                                    { offset: 1, color: 'rgba(217, 119, 6, 0)' }
+                                ])
+                            }
+                        }]
+                    });
+
+                    // 综合指标图
+                    const mixedChart = echarts.init(document.getElementById('mixed-chart'), 'dark');
+                    mixedChart.setOption({
+                        backgroundColor: 'transparent',
+                        tooltip: { trigger: 'axis' },
+                        legend: { data: ['品位', '回收率'] },
+                        xAxis: { type: 'category', data: ['甲班', '乙班', '丙班'] },
+                        yAxis: [
+                            { type: 'value', name: '品位 %', max: 30 },
+                            { type: 'value', name: '回收率 %', max: 100, min: 80 }
+                        ],
+                        series: [
+                            { name: '品位', type: 'bar', barWidth: '30%', data: [24.5, 23.8, 25.1], itemStyle: { color: '#d97706' } },
+                            { name: '回收率', type: 'line', yAxisIndex: 1, data: [91.2, 90.5, 92.8], itemStyle: { color: '#10b981' } }
+                        ]
+                    });
+
+                    window.addEventListener('resize', () => {
+                        lineChart.resize();
+                        mixedChart.resize();
+                    });
+                };
+
+                const generateReport = () => {
+                    alert('正在生成生产月度报表分析报告(PDF/Excel)...');
+                };
+
+                onMounted(() => {
+                    initCharts();
+                });
+
+                return { currentTime, kpis, reportData, generateReport };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
